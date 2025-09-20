@@ -146,6 +146,63 @@ CompletableFuture<ApiResponse> future = restApiClient.postAsync("/api/users", us
 
 ## 🛠️ 설치 및 설정
 
+### 스타터로 사용하기 (다른 프로젝트에서 쉽게 연동)
+
+- 이 모듈을 의존성으로 추가하면 자동 구성(Auto-Configuration)이 활성화되어, 별도 컴포넌트 스캔 없이도 이벤트 기반 API 로깅이 동작합니다.
+- 다른 프로젝트에서는 API 호출 전후에 이벤트만 퍼블리시하면 로그가 저장됩니다.
+
+1) 의존성 추가 (예: Maven)
+
+```xml
+<dependency>
+    <groupId>com.devs.lab</groupId>
+    <artifactId>api-log-starter</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+```
+
+2) 선택적 설정
+
+```properties
+# 자동구성 활성/비활성 (기본값: true)
+api.log.enabled=true
+```
+
+3) 이벤트 퍼블리시 예시
+
+```java
+@Autowired
+private ApplicationEventPublisher publisher;
+
+public void callExternalApi() {
+    ApiRequest request = ApiRequest.builder()
+            .endpoint("/external/users")
+            .payload("{\"name\":\"John\"}")
+            .build();
+
+    // 호출 시작 이벤트
+    publisher.publishEvent(new ApiCallInitiatedEvent(this, request));
+    try {
+        // 외부 호출 수행 후 성공 이벤트
+        ApiResponse response = ApiResponse.builder()
+                .data("{\"result\":\"OK\"}")
+                .statusCode(200)
+                .build();
+        publisher.publishEvent(new ApiCallSuccessEvent(this, request, response));
+    } catch (Exception e) {
+        // 실패 이벤트
+        publisher.publishEvent(new ApiCallErrorEvent(this, request, e, 0, false));
+    }
+}
+```
+
+- 위 의존성만 추가하면 다음이 자동으로 구성됩니다.
+  - 엔티티 스캔, JPA 리포지토리 스캔
+  - ApiLogService, ApiEventListener 빈 등록 (@ConditionalOnMissingBean)
+  - @EnableRetry 설정 (재시도 시 RETRY_ERROR 이벤트 로깅)
+
+> 주의: 데이터베이스 및 JPA 설정은 소비 애플리케이션에서 제공해야 합니다. ObjectMapper 빈도 애플리케이션에 존재해야 합니다.
+
 ### 1. 의존성
 
 ```xml
@@ -219,7 +276,7 @@ docker-compose up -d
 
 ```bash
 ./mvnw clean package
-java -jar target/api_log-0.0.1-SNAPSHOT.jar
+java -jar target/api-log-starter-0.0.1-SNAPSHOT.jar
 ```
 
 ## 🔧 설정 커스터마이징

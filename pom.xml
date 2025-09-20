@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.devs.lab</groupId>
-    <artifactId>api_log</artifactId>
+    <artifactId>api-log-starter</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>api_log</name>
-    <description>api_log</description>
+    <name>api-log-starter</name>
+    <description>API Log Spring Boot Starter</description>
     <url/>
     <licenses>
         <license/>
