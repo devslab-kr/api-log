@@ -301,18 +301,6 @@ HAVING COUNT(*) > 10
 ORDER BY error_rate DESC;
 ```
 
-## 🤝 기여하기
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
-
-## 📄 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 있습니다.
-
 ## 🔗 관련 기술
 
 - [Spring Boot 3.5.6](https://spring.io/projects/spring-boot)
