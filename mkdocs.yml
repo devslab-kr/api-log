@@ -1,0 +1,136 @@
+site_name: api-log
+site_url: https://api-log.devslab.kr/
+site_description: Event-driven API call logging for Spring Boot — async event pipeline with PostgreSQL JSONB storage.
+site_author: Devslab
+copyright: Copyright &copy; 2026 Devslab. Licensed under Apache 2.0.
+
+repo_url: https://github.com/devslab-kr/api-log
+repo_name: devslab-kr/api-log
+edit_uri: edit/master/docs/
+
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: ko
+          name: 한국어
+          build: true
+          nav_translations:
+            Home: 홈
+            Getting Started: 시작하기
+            Installation: 설치
+            Quickstart: 빠른 시작
+            Guides: 가이드
+            Using RestApiClient: RestApiClient 사용하기
+            Publishing Events: 이벤트 직접 발행
+            Retry Handling: 재시도 처리
+            Querying Logs: 로그 조회
+            Reference: 레퍼런스
+            Configuration: 설정
+            Schema: 스키마
+            Events: 이벤트
+            Changelog: 변경 이력
+            Contributing: 기여하기
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quickstart: getting-started/quickstart.md
+  - Guides:
+      - Using RestApiClient: guides/using-restapiclient.md
+      - Publishing Events: guides/publishing-events.md
+      - Retry Handling: guides/retry-handling.md
+      - Querying Logs: guides/querying-logs.md
+  - Reference:
+      - Configuration: reference/configuration.md
+      - Schema: reference/schema.md
+      - Events: reference/events.md
+  - Changelog: changelog.md
+  - Contributing: contributing.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/devslab-kr/api-log
+      name: GitHub
+    - icon: fontawesome/solid/globe
+      link: https://devslab.kr
+      name: Devslab

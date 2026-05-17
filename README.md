@@ -31,7 +31,7 @@ public class UserService {
 }
 ```
 
-Every call lands one or more rows in `api_logs`:
+Every call lands one or more rows in `api_log`:
 
 - **INITIATED** — request fired
 - **SUCCESS** / **ERROR** — terminal outcome with status code and payload
@@ -62,7 +62,7 @@ ApiLogService
    ↓
 ApiLogRepository  (JPA)
    ↓
-PostgreSQL  (api_logs · JSONB columns)
+PostgreSQL  (api_log · JSONB columns)
 ```
 
 ## Installation
@@ -160,10 +160,10 @@ public class MyClient {
 ### Recommended indexes
 
 ```sql
-CREATE INDEX idx_api_logs_endpoint    ON api_logs (endpoint);
-CREATE INDEX idx_api_logs_timestamp   ON api_logs (timestamp DESC);
-CREATE INDEX idx_api_logs_payload_gin ON api_logs USING GIN (payload);
-CREATE INDEX idx_api_logs_response_gin ON api_logs USING GIN (response);
+CREATE INDEX idx_api_log_endpoint    ON api_log (endpoint);
+CREATE INDEX idx_api_log_timestamp   ON api_log (timestamp DESC);
+CREATE INDEX idx_api_log_payload_gin ON api_log USING GIN (payload);
+CREATE INDEX idx_api_log_response_gin ON api_log USING GIN (response);
 ```
 
 ## Example queries
@@ -172,7 +172,7 @@ CREATE INDEX idx_api_logs_response_gin ON api_logs USING GIN (response);
 -- Error rate per endpoint, last 1 hour
 SELECT endpoint,
        COUNT(*) FILTER (WHERE event_type = 'ERROR') * 100.0 / COUNT(*) AS error_rate
-FROM api_logs
+FROM api_log
 WHERE timestamp > NOW() - INTERVAL '1 hour'
 GROUP BY endpoint
 HAVING COUNT(*) > 10

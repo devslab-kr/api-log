@@ -129,7 +129,7 @@ CompletableFuture<ApiResponse> future = restApiClient.postAsync("/api/users", us
 
 ## 📊 로그 데이터 구조
 
-### API 로그 테이블 (api_logs)
+### API 로그 테이블 (api_log)
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -277,8 +277,8 @@ public class CustomJacksonConfig {
 ### 2. JSONB 인덱싱
 ```sql
 -- JSONB 필드에 GIN 인덱스 생성
-CREATE INDEX idx_payload_gin ON api_logs USING GIN (payload);
-CREATE INDEX idx_response_gin ON api_logs USING GIN (response);
+CREATE INDEX idx_payload_gin ON api_log USING GIN (payload);
+CREATE INDEX idx_response_gin ON api_log USING GIN (response);
 ```
 
 ### 3. Jackson Blackbird
@@ -294,7 +294,7 @@ SELECT
     event_type,
     COUNT(*) as count,
     AVG(CASE WHEN status_code IS NOT NULL THEN status_code END) as avg_status
-FROM api_logs
+FROM api_log
 WHERE timestamp > NOW() - INTERVAL '1 hour'
 GROUP BY endpoint, event_type
 ORDER BY count DESC;
@@ -303,7 +303,7 @@ ORDER BY count DESC;
 SELECT
     endpoint,
     COUNT(CASE WHEN event_type = 'ERROR' THEN 1 END) * 100.0 / COUNT(*) as error_rate
-FROM api_logs
+FROM api_log
 GROUP BY endpoint
 HAVING COUNT(*) > 10
 ORDER BY error_rate DESC;

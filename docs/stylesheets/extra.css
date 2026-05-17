@@ -1,0 +1,101 @@
+/* ---------------------------------------------------------------------------
+ * api-log docs — devslab brand theme
+ *
+ * Visual goals (matching devslab.kr's actual aesthetic):
+ *   - Dark header in both light and dark mode (devslab.kr is dark-first).
+ *   - Cyan-electric used as a small accent (links, hovers) — not a wall of color.
+ *   - Pretendard typography for clean Korean rendering.
+ *   - White-rendered devslab logo, working on both header backgrounds.
+ *   - Bilingual "한/EN" language switcher instead of Material's CJK glyph.
+ * --------------------------------------------------------------------------- */
+
+/* === Typography: Pretendard (same family as devslab.kr) =================== */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+
+:root {
+  --md-text-font: "Pretendard",
+                  -apple-system,
+                  "Apple SD Gothic Neo",
+                  "Noto Sans KR",
+                  system-ui,
+                  sans-serif;
+  --md-code-font: "JetBrains Mono", "SFMono-Regular", Menlo,
+                  Consolas, "Liberation Mono", monospace;
+}
+
+/* === Palette (light scheme) ============================================== */
+:root {
+  --md-primary-fg-color:        #18181b;   /* zinc-900 */
+  --md-primary-fg-color--light: #27272a;   /* zinc-800 */
+  --md-primary-fg-color--dark:  #09090b;   /* zinc-950 */
+  --md-primary-bg-color:        #ffffff;
+  --md-primary-bg-color--light: rgba(255, 255, 255, 0.75);
+
+  --md-accent-fg-color:              #06b6d4;                   /* cyan-500 (electric) */
+  --md-accent-fg-color--transparent: rgba(6, 182, 212, 0.10);
+  --md-accent-bg-color:              #ffffff;
+  --md-accent-bg-color--light:       rgba(255, 255, 255, 0.75);
+}
+
+/* === Dark scheme ========================================================= */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #09090b;
+  --md-primary-fg-color--light: #18181b;
+  --md-primary-fg-color--dark:  #000000;
+  --md-primary-bg-color:        #fafafa;
+  --md-primary-bg-color--light: rgba(250, 250, 250, 0.75);
+
+  --md-accent-fg-color:              #22d3ee;
+  --md-accent-fg-color--transparent: rgba(34, 211, 238, 0.12);
+
+  --md-default-bg-color:        #18181b;
+  --md-default-bg-color--light: #27272a;
+  --md-default-bg-color--lighter: #3f3f46;
+  --md-code-bg-color:           #09090b;
+}
+
+/* === Tabs bar (sub-nav below header) ===================================== */
+.md-tabs {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.md-tabs__link--active {
+  color: #22d3ee;
+  opacity: 1;
+}
+.md-tabs__link:hover {
+  color: #67e8f9 !important;
+  opacity: 1;
+}
+
+/* === Brand logo: render white on the dark header ========================= */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  filter: brightness(0) invert(1);
+}
+
+/* === Language switcher: bilingual text label ============================= */
+.md-header [aria-label="Select language"] > svg,
+.md-header [aria-label*="언어"]              > svg {
+  display: none;
+}
+
+.md-header [aria-label="Select language"]::before,
+.md-header [aria-label*="언어"]::before {
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 0 0.15rem;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+html[lang="en"] .md-header [aria-label="Select language"]::before,
+html[lang="en"] .md-header [aria-label*="언어"]::before {
+  content: "EN";
+}
+
+html[lang="ko"] .md-header [aria-label="Select language"]::before,
+html[lang="ko"] .md-header [aria-label*="언어"]::before {
+  content: "한";
+}
