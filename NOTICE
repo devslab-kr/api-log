@@ -1,0 +1,28 @@
+api-log-spring-boot-starter
+Copyright 2026 Devslab (https://devslab.kr)
+
+This product includes software developed by Devslab.
+
+This product depends on (but does not include) the following third-party
+libraries which are distributed under their own licenses:
+
+- Spring Framework / Spring Boot (Apache License 2.0)
+  https://spring.io
+
+- Spring Data JPA (Apache License 2.0)
+  https://spring.io/projects/spring-data-jpa
+
+- Spring Retry (Apache License 2.0)
+  https://github.com/spring-projects/spring-retry
+
+- Jackson / jackson-module-blackbird (Apache License 2.0)
+  https://github.com/FasterXML/jackson-modules-base
+
+- Flyway (Apache License 2.0)
+  https://flywaydb.org
+
+- PostgreSQL JDBC Driver (BSD 2-Clause License)
+  https://jdbc.postgresql.org
+
+- Testcontainers (MIT License)
+  https://www.testcontainers.org
