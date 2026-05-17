@@ -2,7 +2,7 @@
 
 [English](README.md) · **한국어**
 
-> Spring Boot 기반의 이벤트 드리븐 API 호출 로깅 스타터. 비동기 이벤트 파이프라인 + PostgreSQL JSONB 저장.
+> Spring Boot용 이벤트 드리븐 API 호출 로깅. 비동기 이벤트 파이프라인 + PostgreSQL JSONB. 요청 경로를 막지 않고 외부 API 호출을 모두 기록합니다.
 
 [![Maven Central](https://img.shields.io/maven-central/v/kr.devslab/api-log-spring-boot-starter.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/kr.devslab/api-log-spring-boot-starter)
 [![CI](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml/badge.svg)](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml)
@@ -12,338 +12,198 @@
 
 📖 **[문서 → api-log.devslab.kr](https://api-log.devslab.kr/ko/)**
 
-Spring Boot 기반의 이벤트 드리븐 API 호출 로깅 시스템입니다. PostgreSQL JSONB를 활용하여 효율적으로 API 호출 데이터를 저장하고 관리합니다.
+## 무엇을 하나
 
-## 🏗️ 아키텍처 개요
+서비스의 모든 외부 HTTP 호출 — 요청, 응답, 에러, 재시도 — 을 PostgreSQL에 기록합니다. 논블로킹 이벤트 파이프라인으로 동작하므로 호출자는 로그 쓰기를 기다리지 않습니다. 번들된 `RestApiClientUtil`로 보낸 호출이든, 직접 발행하는 이벤트든, JSONB로 저장됩니다.
 
-```
-사용자 코드
-    ↓
-RestApiClientUtil (HTTP 클라이언트)
-    ↓ (이벤트 발행)
-ApplicationEventPublisher
-    ↓ (비동기 처리)
-ApiEventListener
-    ↓
-ApiLogService
-    ↓
-ApiLogRepository
-    ↓
-PostgreSQL (JSONB)
-```
-
-## 🔄 플로우 다이어그램
-
-```mermaid
-sequenceDiagram
-    participant Client as 사용자 코드
-    participant RestAPI as RestApiClientUtil
-    participant EventPub as ApplicationEventPublisher
-    participant Listener as ApiEventListener
-    participant Service as ApiLogService
-    participant DB as PostgreSQL
-
-    Client->>RestAPI: postSync("/api/users", data)
-
-    RestAPI->>EventPub: ApiCallInitiatedEvent 발행
-    EventPub-->>Listener: 비동기 이벤트 전달
-    Listener->>Service: saveApiCallInitiated()
-    Service->>DB: INSERT (INITIATED)
-
-    RestAPI->>RestAPI: 실제 HTTP 호출
-
-    alt 성공 시
-        RestAPI->>EventPub: ApiCallSuccessEvent 발행
-        EventPub-->>Listener: 비동기 이벤트 전달
-        Listener->>Service: saveApiCallSuccess()
-        Service->>DB: INSERT (SUCCESS)
-    else 실패 시
-        RestAPI->>EventPub: ApiCallErrorEvent 발행
-        EventPub-->>Listener: 비동기 이벤트 전달
-        Listener->>Service: saveApiCallError()
-        Service->>DB: INSERT (ERROR)
-    end
-
-    RestAPI-->>Client: ApiResponse 반환
-```
-
-## 🎯 주요 특징
-
-### 1. 이벤트 드리븐 아키텍처
-- **비동기 처리**: API 호출 성능에 영향 없이 로깅 처리
-- **디커플링**: 비즈니스 로직과 로깅 로직 분리
-- **확장성**: 새로운 이벤트 리스너 추가 용이
-
-### 2. Virtual Threads 지원
-- **고성능**: Java 21 Virtual Threads로 동시성 처리
-- **효율적 자원 사용**: 기존 Thread Pool 대비 메모리 효율성
-
-### 3. PostgreSQL JSONB 활용
-- **유연한 스키마**: JSON 데이터 직접 저장
-- **고성능 쿼리**: JSONB 인덱싱 지원
-- **타입 안전성**: Jackson ObjectMapper 통합
-
-### 4. 현대적 HTTP 클라이언트
-- **RestClient**: Spring 6+ 최신 HTTP 클라이언트
-- **Jackson Blackbird**: 고성능 JSON 처리
-- **제네릭 지원**: 타입 안전한 HTTP 요청/응답
-
-## 🚀 사용 방법
-
-### 기본 사용법
+## 한눈에 보기
 
 ```java
 @Service
 public class UserService {
 
-    @Autowired
-    private RestApiClientUtil restApiClient;
+    private final RestApiClientUtil api;
 
-    public void createUser(User user) {
-        // String 기반 요청
-        ApiResponse response = restApiClient.postSync("/api/users",
-            "{\"name\":\"John\",\"email\":\"john@example.com\"}");
+    public UserService(RestApiClientUtil api) {
+        this.api = api;
+    }
 
-        // DTO 기반 요청
-        ApiResponse response2 = restApiClient.postSync("/api/users", user);
-
-        // 타입 안전한 응답
-        User createdUser = restApiClient.postSyncTyped("/api/users", user, User.class);
-
-        // 비동기 요청
-        CompletableFuture<ApiResponse> future = restApiClient.postAsync("/api/users", user);
+    public User createUser(User newUser) {
+        // HTTP 호출은 동기적이고; 로깅 이벤트는 백그라운드에서 발화.
+        return api.postSyncTyped("/api/users", newUser, User.class);
     }
 }
 ```
 
-### 지원하는 HTTP 메서드
+한 호출이 `api_log`에 한 행 이상 생성:
 
-```java
-// GET 요청
-ApiResponse response = restApiClient.getSync("/api/users/1");
-User user = restApiClient.getSyncTyped("/api/users/1", User.class);
+- **INITIATED** — 요청 발사
+- **SUCCESS** / **ERROR** — 종료 결과 (상태 코드 + 페이로드)
+- **RETRY_ERROR** — 재시도 실패 시 (사용자가 직접 발행)
 
-// POST 요청
-ApiResponse response = restApiClient.postSync("/api/users", userData);
-User user = restApiClient.postSyncTyped("/api/users", userData, User.class);
+본문은 JSONB로 저장되어 `->`, `->>`, GIN 인덱스로 자유롭게 조회 가능.
 
-// 비동기 요청
-CompletableFuture<ApiResponse> future = restApiClient.postAsync("/api/users", userData);
+## 핵심 가치
+
+- **논블로킹** — 로그 쓰기는 별도 스레드. HTTP 호출 경로는 절대 막히지 않음.
+- **PostgreSQL JSONB** — 요청·응답·에러 본문이 조회 가능한 JSON
+- **재시도 인식 스키마** — `RETRY_ERROR` 이벤트 + `retry_count` / `is_retry` 컬럼. 리스너도 일시적 DB 실패에 대해 로그 쓰기를 3회 재시도.
+- **Virtual Threads 지원** — Java 21+ 비동기 설계
+- **Drop-in 스타터** — 자동 구성으로 모든 빈 등록. 직접 빈 정의하면 오버라이드.
+
+## 아키텍처
+
+```
+Caller code
+   ↓
+RestApiClientUtil  (또는 자체 HTTP 클라이언트)
+   ↓ publishEvent
+ApplicationEventPublisher
+   ↓ @EventListener (async)
+ApiEventListener
+   ↓
+ApiLogService
+   ↓
+ApiLogRepository  (JPA)
+   ↓
+PostgreSQL  (api_log · JSONB columns)
 ```
 
-## 📊 로그 데이터 구조
+## 설치
 
-### API 로그 테이블 (api_log)
-
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| id | BIGSERIAL | 기본키 |
-| event_type | VARCHAR(50) | INITIATED, SUCCESS, ERROR, RETRY_ERROR |
-| request_id | VARCHAR(36) | UUID 요청 추적 ID |
-| endpoint | VARCHAR(255) | API 엔드포인트 |
-| payload | JSONB | 요청 데이터 (JSON) |
-| response | JSONB | 응답 데이터 (JSON) |
-| error_message | JSONB | 에러 메시지 (JSON) |
-| status_code | INTEGER | HTTP 상태 코드 |
-| timestamp | TIMESTAMP | 이벤트 발생 시간 |
-| retry_count | INTEGER | 재시도 횟수 |
-| is_retry | BOOLEAN | 재시도 여부 |
-
-### 이벤트 타입
-
-- **INITIATED**: API 호출 시작
-- **SUCCESS**: API 호출 성공
-- **ERROR**: API 호출 실패
-- **RETRY_ERROR**: 재시도 실패
-
-## 🛠️ 설치 및 설정
-
-### 스타터로 사용하기 (다른 프로젝트에서 쉽게 연동)
-
-- 이 모듈을 의존성으로 추가하면 자동 구성(Auto-Configuration)이 활성화되어, 별도 컴포넌트 스캔 없이도 이벤트 기반 API 로깅이 동작합니다.
-- 다른 프로젝트에서는 API 호출 전후에 이벤트만 퍼블리시하면 로그가 저장됩니다.
-
-1) 의존성 추가 (예: Maven)
+### Maven
 
 ```xml
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-spring-boot-starter</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
-2) 선택적 설정
+### Gradle
 
-```properties
-# 자동구성 활성/비활성 (기본값: true)
-api.log.enabled=true
+```kotlin
+implementation("kr.devslab:api-log-spring-boot-starter:0.4.0")
 ```
 
-3) 이벤트 퍼블리시 예시
-
-```java
-@Autowired
-private ApplicationEventPublisher publisher;
-
-public void callExternalApi() {
-    ApiRequest request = ApiRequest.builder()
-            .endpoint("/external/users")
-            .payload("{\"name\":\"John\"}")
-            .build();
-
-    // 호출 시작 이벤트
-    publisher.publishEvent(new ApiCallInitiatedEvent(this, request));
-    try {
-        // 외부 호출 수행 후 성공 이벤트
-        ApiResponse response = ApiResponse.builder()
-                .data("{\"result\":\"OK\"}")
-                .statusCode(200)
-                .build();
-        publisher.publishEvent(new ApiCallSuccessEvent(this, request, response));
-    } catch (Exception e) {
-        // 실패 이벤트
-        publisher.publishEvent(new ApiCallErrorEvent(this, request, e, 0, false));
-    }
-}
-```
-
-- 위 의존성만 추가하면 다음이 자동으로 구성됩니다.
-  - 엔티티 스캔, JPA 리포지토리 스캔
-  - ApiLogService, ApiEventListener 빈 등록 (@ConditionalOnMissingBean)
-  - ApiLogSchemaInitializer (기본 BUILTIN이면 부팅 시 `CREATE TABLE IF NOT EXISTS` 실행)
-  - @EnableRetry 활성화 — `ApiEventListener`가 로그 INSERT 실패 시 최대 3회 재시도
-
-> 주의: 데이터베이스 및 JPA 설정은 소비 애플리케이션에서 제공해야 합니다. ObjectMapper 빈도 애플리케이션에 존재해야 합니다.
-> HTTP 호출 자체의 재시도 추적은 [재시도 가이드](https://api-log.devslab.kr/ko/guides/retry-handling/) 참고.
-
-### 전제 조건 (소비 애플리케이션에서 제공)
+## 설정
 
 ```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/your_db
-    username: your_user
-    password: your_password
-  threads:
-    virtual:
-      enabled: true   # 권장 (Java 21+)
-
 api:
   log:
     enabled: true              # 기본값 — false면 전체 인프라 비활성화
     schema:
-      management: builtin      # 기본값 — 아래 "스키마 관리" 참고
+      management: builtin      # 기본값 — 아래 "스키마" 참고
 ```
 
-- **PostgreSQL DataSource** (JSONB 컬럼 사용 위해 필수)
-- **ObjectMapper** Bean (Spring Boot 기본 구성으로 충분)
+직접 제공:
 
-`api_log` 테이블은 첫 부팅 시 스타터가 자동 생성 — 별도 설정 불필요.
+- PostgreSQL을 가리키는 `DataSource`
+- `ObjectMapper` 빈 (Spring Boot 자동 구성으로 충분)
+
+기본 설정이면 `api_log` 테이블은 첫 부팅 시 자동 생성 — 별도 설정 없이 동작합니다.
 
 ### 스키마 관리
 
 `api.log.schema.management`로 `api_log` 테이블 생성 방식 선택:
 
-- **`builtin`** (기본) — 스타터가 부팅 시 `CREATE TABLE IF NOT EXISTS` 실행. 멱등적, 마이그레이션 도구 불필요. 그냥 동작합니다.
-- **`flyway`** — 사용자 Flyway 흐름에 등록 (`flyway_schema_history`가 추적). `flyway-core` 클래스패스 필요.
-- **`none`** — 스타터가 스키마에 손 안 댐. Liquibase / 수동 `psql` / 본인 흐름으로 DDL 직접 적용. SQL은 [스키마 레퍼런스](https://api-log.devslab.kr/ko/reference/schema/) 참고.
+- **`builtin`** (기본) — 스타터가 부팅 시 `CREATE TABLE IF NOT EXISTS` 실행. 멱등적, 마이그레이션 도구 불필요.
+- **`flyway`** — 사용자 Flyway 흐름에 등록 (`flyway_schema_history`로 추적). `flyway-core` 클래스패스 필요.
+- **`none`** — 스타터가 스키마에 손 안 댐. DDL 직접 적용.
 
 전체 설치 가이드: [api-log.devslab.kr/ko/getting-started/installation](https://api-log.devslab.kr/ko/getting-started/installation/).
 
-## 🧪 테스트
-
-### 테스트 실행
-
-```bash
-./mvnw test
-```
-
-### 테스트 특징
-
-- **Testcontainers**: 실제 PostgreSQL 컨테이너를 사용한 통합 테스트
-- **포괄적 테스트**: 서비스·리포지토리·리스너·Testcontainers 기반 PostgreSQL 통합까지 커버
-- **격리된 환경**: 각 테스트는 독립적인 데이터베이스 사용
-
-## 🔧 설정 커스터마이징
-
-### Virtual Threads 비활성화
-
-```properties
-spring.threads.virtual.enabled=false
-```
-
-### Jackson 설정 변경
+## `RestApiClientUtil` 사용
 
 ```java
-@Configuration
-public class CustomJacksonConfig {
+// GET
+ApiResponse r = api.getSync("/api/users/1");
+User user    = api.getSyncTyped("/api/users/1", User.class);
 
-    @Bean
-    @Primary
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new BlackbirdModule());
-        // 추가 설정...
-        return mapper;
+// POST
+ApiResponse r = api.postSync("/api/users", payload);
+User created = api.postSyncTyped("/api/users", payload, User.class);
+
+// 비동기
+CompletableFuture<ApiResponse> f = api.postAsync("/api/users", payload);
+```
+
+자세한 API: [RestApiClientUtil 가이드](https://api-log.devslab.kr/ko/guides/using-restapiclient/).
+
+## 이벤트 직접 발행
+
+자체 HTTP 클라이언트를 쓰면서 로깅만 활용하고 싶을 때:
+
+```java
+@Service
+@RequiredArgsConstructor
+public class MyClient {
+
+    private final ApplicationEventPublisher publisher;
+
+    public void call() {
+        ApiRequest req = ApiRequest.builder()
+                .endpoint("/external/users")
+                .payload("{\"name\":\"John\"}")
+                .build();
+
+        publisher.publishEvent(new ApiCallInitiatedEvent(this, req));
+        try {
+            ApiResponse res = doHttp(req);              // 자체 HTTP 호출
+            publisher.publishEvent(new ApiCallSuccessEvent(this, req, res));
+        } catch (Exception e) {
+            publisher.publishEvent(new ApiCallErrorEvent(this, req, e, 0, false));
+        }
     }
 }
 ```
 
-## 📈 성능 고려사항
+자세한 패턴 (재시도 타임라인 등): [이벤트 발행 가이드](https://api-log.devslab.kr/ko/guides/publishing-events/) · [재시도 처리 가이드](https://api-log.devslab.kr/ko/guides/retry-handling/).
 
-### 1. Virtual Threads
-- **메모리 효율성**: 기존 ThreadPool 대비 95% 메모리 절약
-- **동시성**: 수만 개의 동시 요청 처리 가능
-- **지연시간**: 컨텍스트 스위칭 오버헤드 최소화
+## 스키마
 
-### 2. JSONB 인덱싱
+| 컬럼 | 타입 | 비고 |
+|---|---|---|
+| `id` | BIGSERIAL | PK |
+| `event_type` | VARCHAR(50) | `INITIATED`, `SUCCESS`, `ERROR`, `RETRY_ERROR` |
+| `request_id` | VARCHAR(36) | UUID correlation id |
+| `endpoint` | VARCHAR(255) | 대상 URL |
+| `payload` | JSONB | 요청 본문 |
+| `response` | JSONB | 응답 본문 |
+| `error_message` | JSONB | `{type, message, responseBody?}` |
+| `status_code` | INTEGER | HTTP 상태 (HTTP 예외에서 추출, 아니면 NULL) |
+| `timestamp` | TIMESTAMP | 이벤트 발화 시각 |
+| `retry_count` | INTEGER | 첫 시도는 `0` |
+| `is_retry` | BOOLEAN | 재시도 시도면 `true` |
+
+전체 컬럼 + 권장 인덱스 + JSONB 형식: [스키마 레퍼런스](https://api-log.devslab.kr/ko/reference/schema/).
+
+## 예시 쿼리
+
 ```sql
--- JSONB 필드에 GIN 인덱스 생성
-CREATE INDEX idx_payload_gin ON api_log USING GIN (payload);
-CREATE INDEX idx_response_gin ON api_log USING GIN (response);
-```
-
-### 3. Jackson Blackbird
-- **처리량**: 기본 Jackson 대비 30-50% 성능 향상
-- **메모리**: 가비지 컬렉션 오버헤드 감소
-
-## 🔍 로그 분석
-
-```sql
--- 최근 1시간 API 호출 통계
-SELECT
-    endpoint,
-    event_type,
-    COUNT(*) as count,
-    AVG(CASE WHEN status_code IS NOT NULL THEN status_code END) as avg_status
+-- 최근 1시간 엔드포인트별 에러율
+SELECT endpoint,
+       COUNT(*) FILTER (WHERE event_type = 'ERROR') * 100.0 / COUNT(*) AS error_rate
 FROM api_log
 WHERE timestamp > NOW() - INTERVAL '1 hour'
-GROUP BY endpoint, event_type
-ORDER BY count DESC;
-
--- 에러율 분석
-SELECT
-    endpoint,
-    COUNT(CASE WHEN event_type = 'ERROR' THEN 1 END) * 100.0 / COUNT(*) as error_rate
-FROM api_log
 GROUP BY endpoint
 HAVING COUNT(*) > 10
 ORDER BY error_rate DESC;
 ```
 
-## 🔗 관련 기술
+더 많은 패턴: [로그 조회 가이드](https://api-log.devslab.kr/ko/guides/querying-logs/).
 
-- [Spring Boot 3.5.6](https://spring.io/projects/spring-boot)
-- [PostgreSQL 15+](https://www.postgresql.org/)
-- [Jackson Blackbird](https://github.com/FasterXML/jackson-modules-base)
-- [Testcontainers](https://www.testcontainers.org/)
-- [Java 21 Virtual Threads](https://openjdk.org/jeps/444)
+## 요구사항
 
-## 📄 라이선스
+- Java 21+
+- Spring Boot 3.5+
+- PostgreSQL 15+ (JSONB)
+
+## 라이선스
 
 Apache License 2.0 — [LICENSE](LICENSE), [NOTICE](NOTICE) 참고.
 
 ---
 
-[Devslab](https://devslab.kr) 제작 · [DevsLab 오픈소스 모음](https://github.com/devslab-kr)의 일부
+[Devslab](https://devslab.kr) 제작 · [DevsLab 오픈소스 모음](https://github.com/devslab-kr)의 일부.
