@@ -12,29 +12,12 @@ spring:
     url: jdbc:postgresql://localhost:5432/your_db
     username: your_user
     password: your_password
-
-api:
-  log:
-    enabled: true
-    schema:
-      management: flyway   # 이 빠른시작에서는 스타터가 api_log 테이블을 만들도록 위임
-                           # (기본은 'none' — DDL을 직접 적용; 설치 가이드 참고)
 ```
 
-!!! note "이 빠른시작은 Flyway 필요"
-    `schema.management=flyway`는 클래스패스에 Flyway가 있어야 합니다. 추가:
-    ```xml
-    <dependency>
-        <groupId>org.flywaydb</groupId>
-        <artifactId>flyway-core</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.flywaydb</groupId>
-        <artifactId>flyway-database-postgresql</artifactId>
-        <scope>runtime</scope>
-    </dependency>
-    ```
-    또는 운영 환경이라면 `management: none` 유지하고 [DDL](../reference/schema.md)을 본인 마이그레이션 도구로 적용.
+이게 전부 — happy path에서 `api.log.*` 설정 필요 없음. 기본값 `schema.management=builtin`이 첫 부팅 시 `api_log` 테이블 생성.
+
+!!! tip "운영 환경 스키마 전략"
+    BUILTIN은 빨리 시작하거나 별도 마이그레이션 도구가 없는 프로젝트에 좋습니다. 마이그레이션 추적(Flyway)이나 라이브러리/스키마 엄격 분리(NONE)가 필요하면 [스키마 관리](installation.md#schema-management) 참고.
 
 !!! tip "자체 RestClient 사용"
     이미 특정 대상에 맞춰 설정한 `org.springframework.web.client.RestClient` 빈이 있다면 `@Bean RestClient apiLogRestClient(...)`로 노출하면 `RestApiClientUtil`이 이를 가져옵니다. 없으면 기본 `RestClient.create()`가 사용됩니다.

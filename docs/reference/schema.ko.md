@@ -1,8 +1,8 @@
 # 스키마
 
-스타터는 테이블 하나를 사용합니다: `api_log`. v0.2.0부터 **테이블은 기본적으로 자동 생성되지 않습니다** — [`api.log.schema.management`](configuration.md#_2) 와 [설치 / 스키마 관리](../getting-started/installation.md#schema-management) 참고 (DDL 직접 적용 vs 번들 Flyway 옵트인).
+스타터는 테이블 하나를 사용합니다: `api_log`. v0.3.0부터 **기본값 `api.log.schema.management=builtin`이 첫 부팅 시 이 테이블을 자동 생성**합니다 — 마이그레이션 도구 불필요. 세 가지 전략은 [`api.log.schema.management`](configuration.md#_2) 와 [설치 / 스키마 관리](../getting-started/installation.md#schema-management) 참고.
 
-아래 SQL은 JAR 내부 `classpath:db/api-log/V1.0__create_api_log.sql`의 내용 그대로입니다 — 본인 마이그레이션에 복사해 넣거나 `psql`로 직접 적용 가능합니다.
+아래 SQL은 JAR 내부 `classpath:db/api-log/V1.0__create_api_log.sql`의 내용 그대로입니다 — 수동 적용(`schema.management=none`)이나 본인 마이그레이션에 복사할 때 유용합니다.
 
 ## 테이블 정의
 

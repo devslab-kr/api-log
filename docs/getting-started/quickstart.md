@@ -12,29 +12,12 @@ spring:
     url: jdbc:postgresql://localhost:5432/your_db
     username: your_user
     password: your_password
-
-api:
-  log:
-    enabled: true
-    schema:
-      management: flyway   # let the starter create the api_log table for this quickstart
-                           # (default is 'none' — you apply the DDL yourself; see Installation)
 ```
 
-!!! note "Flyway required for this quickstart"
-    `schema.management=flyway` needs Flyway on the classpath. Add it:
-    ```xml
-    <dependency>
-        <groupId>org.flywaydb</groupId>
-        <artifactId>flyway-core</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.flywaydb</groupId>
-        <artifactId>flyway-database-postgresql</artifactId>
-        <scope>runtime</scope>
-    </dependency>
-    ```
-    Or, for production setups, leave `management: none` and apply [the DDL](../reference/schema.md) via your own migration tool.
+That's it — no `api.log.*` config needed for the happy path. The default `schema.management=builtin` creates the `api_log` table for you on first boot.
+
+!!! tip "Production schema strategy"
+    BUILTIN is great for getting started and for projects without a dedicated migration tool. If you want migration tracking (Flyway) or strict separation between library and schema (NONE), see [Schema management](installation.md#schema-management).
 
 !!! tip "Bring your own RestClient"
     If you already have an `org.springframework.web.client.RestClient` bean configured for a specific target, expose it as `@Bean RestClient apiLogRestClient(...)` and `RestApiClientUtil` will pick it up. Otherwise the default uses Spring's `RestClient.create()`.

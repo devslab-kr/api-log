@@ -165,7 +165,7 @@ CompletableFuture<ApiResponse> future = restApiClient.postAsync("/api/users", us
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-spring-boot-starter</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
@@ -227,19 +227,21 @@ api:
   log:
     enabled: true              # 기본값 — false면 전체 인프라 비활성화
     schema:
-      management: none         # 기본값 — 아래 "스키마 관리" 참고
+      management: builtin      # 기본값 — 아래 "스키마 관리" 참고
 ```
 
 - **PostgreSQL DataSource** (JSONB 컬럼 사용 위해 필수)
 - **ObjectMapper** Bean (Spring Boot 기본 구성으로 충분)
-- `api_log` 테이블 생성 방법 — DDL을 직접 적용하거나, 번들 Flyway 마이그레이션을 옵트인
 
-### 스키마 관리 (v0.2.0 변경)
+`api_log` 테이블은 첫 부팅 시 스타터가 자동 생성 — 별도 설정 불필요.
 
-`api_log` 테이블은 **자동으로 생성되지 않습니다.** 두 가지 옵션:
+### 스키마 관리
 
-1. **DDL 직접 적용** (기본값, 운영 권장) — [스키마 레퍼런스](https://api-log.devslab.kr/ko/reference/schema/) 참고. 본인 Flyway/Liquibase/수동 흐름에 SQL을 넣으세요.
-2. **번들 마이그레이션 옵트인** — Flyway 의존성 추가 + `api.log.schema.management=flyway`. 스타터가 `spring.flyway.locations`에 `classpath:db/api-log` 추가.
+`api.log.schema.management`로 `api_log` 테이블 생성 방식 선택:
+
+- **`builtin`** (기본) — 스타터가 부팅 시 `CREATE TABLE IF NOT EXISTS` 실행. 멱등적, 마이그레이션 도구 불필요. 그냥 동작합니다.
+- **`flyway`** — 사용자 Flyway 흐름에 등록 (`flyway_schema_history`가 추적). `flyway-core` 클래스패스 필요.
+- **`none`** — 스타터가 스키마에 손 안 댐. Liquibase / 수동 `psql` / 본인 흐름으로 DDL 직접 적용. SQL은 [스키마 레퍼런스](https://api-log.devslab.kr/ko/reference/schema/) 참고.
 
 전체 설치 가이드: [api-log.devslab.kr/ko/getting-started/installation](https://api-log.devslab.kr/ko/getting-started/installation/).
 

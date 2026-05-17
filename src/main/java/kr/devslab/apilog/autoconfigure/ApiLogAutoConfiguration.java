@@ -16,6 +16,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+import javax.sql.DataSource;
+
 @AutoConfiguration
 @ConditionalOnClass({ApiEventListener.class, ApiLogService.class})
 @EnableConfigurationProperties(ApiLogProperties.class)
@@ -37,5 +39,23 @@ public class ApiLogAutoConfiguration {
     @ConditionalOnBean(ApiLogService.class)
     public ApiEventListener apiEventListener(ApiLogService apiLogService) {
         return new ApiEventListener(apiLogService);
+    }
+
+    /**
+     * Creates the api_log table at startup when the consumer hasn't picked a
+     * different management strategy (the default — BUILTIN). The CREATE TABLE
+     * statements use IF NOT EXISTS, so this is idempotent and safe to re-run
+     * on every boot.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(
+            prefix = "api.log.schema",
+            name = "management",
+            havingValue = "builtin",
+            matchIfMissing = true
+    )
+    public ApiLogSchemaInitializer apiLogSchemaInitializer(DataSource dataSource) {
+        return new ApiLogSchemaInitializer(dataSource);
     }
 }

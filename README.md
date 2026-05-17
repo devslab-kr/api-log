@@ -73,14 +73,14 @@ PostgreSQL  (api_log · JSONB columns)
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-spring-boot-starter</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```kotlin
-implementation("kr.devslab:api-log-spring-boot-starter:0.2.0")
+implementation("kr.devslab:api-log-spring-boot-starter:0.3.0")
 ```
 
 ## Configuration
@@ -90,21 +90,23 @@ api:
   log:
     enabled: true              # default — set to false to disable the whole infrastructure
     schema:
-      management: none         # default — see "Schema" below
+      management: builtin      # default — see "Schema" below
 ```
 
 You bring your own:
 
 - `DataSource` pointing at a PostgreSQL database
 - `ObjectMapper` bean (Spring Boot's auto-config is fine)
-- Either the `api_log` table created via your own migration tool, OR the bundled Flyway migration (opt in below)
+
+The `api_log` table is created for you on first boot — no other setup needed.
 
 ### Schema
 
-The `api_log` table is **not** created automatically. Two options:
+`api.log.schema.management` selects how the `api_log` table is provisioned:
 
-1. **Apply the DDL yourself** (default, recommended for production) — see the [Schema reference](https://api-log.devslab.kr/reference/schema/) for the SQL, then put it in your own Flyway/Liquibase/manual flow.
-2. **Opt in to the bundled migration** — add Flyway to your dependencies and set `api.log.schema.management=flyway`. The starter then appends `classpath:db/api-log` to your Flyway locations.
+- **`builtin`** (default) — the starter runs `CREATE TABLE IF NOT EXISTS` on startup. Idempotent, requires no migration tool. Just works.
+- **`flyway`** — register with the consumer's Flyway flow (`flyway_schema_history` tracks the migration). Requires `flyway-core` on the classpath.
+- **`none`** — the starter does not touch the schema. Apply the DDL yourself via Liquibase / manual `psql` / your own flow. See the [Schema reference](https://api-log.devslab.kr/reference/schema/) for the SQL.
 
 Full installation guide: [api-log.devslab.kr/getting-started/installation](https://api-log.devslab.kr/getting-started/installation/).
 

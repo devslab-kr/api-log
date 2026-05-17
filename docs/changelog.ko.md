@@ -6,6 +6,25 @@
 
 ## [Unreleased]
 
+## [0.3.0] — BUILTIN 스키마 관리가 새 기본값
+
+### Changed
+
+- **BUILTIN이 새 기본 스키마 관리 전략.** v0.2.0이 스키마 관리를 옵트인(`NONE` 기본)으로 만들었지만, Flyway/Liquibase 안 쓰는 사용자는 첫 부팅에서 "테이블 없음" 에러를 봐야 했습니다. v0.3.0은 기본값을 `BUILTIN`으로 뒤집어 — 스타터가 Spring Boot의 `DataSourceScriptDatabaseInitializer`로 `CREATE TABLE IF NOT EXISTS`를 자동 실행. 테이블이 그냥 존재합니다.
+- `V1.0__create_api_log.sql`이 `IF NOT EXISTS` 절을 사용해 멱등적 — 매 부팅마다 안전하게 재실행 가능. Flyway도 문제 없음 (`flyway_schema_history` 행이 핵심, SQL 결과가 아님).
+
+### 전략 정리 (v0.3.0 이후)
+
+- `api.log.schema.management=builtin` (기본) — 스타터가 부팅 시 테이블 생성
+- `api.log.schema.management=flyway` — 스타터가 `FlywayConfigurationCustomizer` 등록 (Flyway 의존성 필요)
+- `api.log.schema.management=none` — 스타터가 스키마에 손 안 댐; 사용자가 직접 DDL 적용
+
+### v0.2.0에서 마이그레이션
+
+- **`management=flyway` 명시한 경우:** 변경 불필요.
+- **`management=none` 명시한 경우:** 변경 불필요.
+- **`management`를 설정 안 한 경우 (v0.2.0 기본 NONE에 의존, 다른 곳에서 DDL 적용 중):** `management=none`을 명시해서 기존 동작 유지하거나, BUILTIN이 동작하도록 그대로 두기 (멱등적이라 기존 테이블과 충돌 없음).
+
 ## [0.2.0] — 스키마 관리 옵트인
 
 ### Changed
@@ -62,6 +81,7 @@ v0.1.0의 자동 마이그레이션에 의존하고 있었다면:
 - `ApiLogAutoConfiguration`을 통한 자동 구성, `@ConditionalOnMissingBean` 오버라이드.
 - Testcontainers 기반 PostgreSQL 통합 테스트 31개.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.3.0
 [0.2.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.2.0
 [0.1.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.1.0

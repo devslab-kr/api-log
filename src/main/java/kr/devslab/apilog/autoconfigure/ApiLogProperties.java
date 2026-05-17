@@ -38,19 +38,22 @@ public class ApiLogProperties {
          * Schema management strategy for the {@code api_log} table.
          *
          * <ul>
-         *   <li><b>NONE</b> (default) — the starter does not touch the schema. Apply the DDL
-         *       yourself (the SQL is documented at <a href="https://api-log.devslab.kr/reference/schema/">api-log.devslab.kr/reference/schema</a>
-         *       and shipped at {@code classpath:db/api-log/V1.0__create_api_log.sql} inside the JAR
-         *       if you want to copy it into your own migrations).
-         *       Use this with Liquibase, manual DDL, or a custom Flyway flow.</li>
+         *   <li><b>BUILTIN</b> (default) — the starter runs {@code CREATE TABLE IF NOT EXISTS}
+         *       on application startup, so the table just exists without any other tool.
+         *       The SQL is idempotent, so this is safe to leave on every boot.
+         *       Use this if you don't have (or don't want) Flyway / Liquibase in your project.</li>
+         *   <li><b>NONE</b> — the starter does not touch the schema. Apply the DDL yourself
+         *       (see <a href="https://api-log.devslab.kr/reference/schema/">api-log.devslab.kr/reference/schema</a>).
+         *       Use this if your team's policy is that third-party libraries must never touch the schema,
+         *       or if you've already provisioned the table some other way.</li>
          *   <li><b>FLYWAY</b> — the starter registers a {@code FlywayConfigurationCustomizer} that
          *       appends {@code classpath:db/api-log} to Flyway's locations, so the bundled
-         *       {@code V1.0__create_api_log.sql} runs alongside your own migrations.
-         *       Requires {@code org.flywaydb:flyway-core} on the classpath
-         *       (the starter declares it as optional, so the consumer must add it).</li>
+         *       {@code V1.0__create_api_log.sql} runs alongside your own migrations and is
+         *       recorded in {@code flyway_schema_history}. Requires {@code org.flywaydb:flyway-core}
+         *       on the classpath (the starter declares it as optional, so the consumer must add it).</li>
          * </ul>
          */
-        private Management management = Management.NONE;
+        private Management management = Management.BUILTIN;
 
         public Management getManagement() {
             return management;
@@ -61,6 +64,7 @@ public class ApiLogProperties {
         }
 
         public enum Management {
+            BUILTIN,
             NONE,
             FLYWAY
         }

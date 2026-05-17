@@ -7,7 +7,7 @@
 | 속성 | 타입 | 기본값 | 설명 |
 |---|---|---|---|
 | `api.log.enabled` | `boolean` | `true` | 마스터 스위치. `false`면 `ApiLogAutoConfiguration`이 비활성화되어 어떤 빈도 등록되지 않습니다 (리스너, 서비스, `RestApiClientUtil` 모두 없음). |
-| `api.log.schema.management` | `NONE` \| `FLYWAY` | `NONE` | `api_log` 테이블을 어떻게 만들지. `NONE` — 사용자가 직접 DDL 적용 ([스키마](schema.md) 참고). `FLYWAY` — 스타터가 `classpath:db/api-log`를 `spring.flyway.locations`에 추가해 번들 마이그레이션이 사용자 마이그레이션과 함께 실행됨. `FLYWAY` 사용 시 `org.flywaydb:flyway-core` 직접 추가 필요 (스타터에서 optional로 선언). |
+| `api.log.schema.management` | `BUILTIN` \| `FLYWAY` \| `NONE` | `BUILTIN` | `api_log` 테이블 생성 방식. `BUILTIN` (기본) — 스타터가 Spring Boot의 `DataSourceScriptDatabaseInitializer`로 부팅 시 `CREATE TABLE IF NOT EXISTS` 실행; 멱등적, 마이그레이션 도구 불필요. `FLYWAY` — `classpath:db/api-log`를 `spring.flyway.locations`에 추가해 번들 마이그레이션이 사용자 마이그레이션과 함께 실행됨 (`org.flywaydb:flyway-core` 클래스패스 필요; 스타터에선 optional). `NONE` — 사용자가 직접 DDL 적용 ([스키마](schema.md) 참고). |
 
 표면적이 이게 전부입니다 — 스타터는 의도적으로 최소화. 대부분의 동작(재시도 정책, 비동기 executor, Flyway 위치)은 표준 Spring Boot 설정에서 옵니다.
 

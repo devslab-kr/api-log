@@ -7,7 +7,7 @@ All configuration is under the `api.log` prefix. The starter ships with sensible
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `api.log.enabled` | `boolean` | `true` | Master switch. When `false`, `ApiLogAutoConfiguration` short-circuits and no beans are registered (no listener, no service, no `RestApiClientUtil`). |
-| `api.log.schema.management` | `NONE` \| `FLYWAY` | `NONE` | How the `api_log` table is created. `NONE` — you apply the DDL yourself (see [Schema](schema.md)). `FLYWAY` — the starter appends `classpath:db/api-log` to `spring.flyway.locations` so the bundled migration runs alongside yours. `FLYWAY` requires `org.flywaydb:flyway-core` on the classpath (added by the consumer, since the starter declares it as optional). |
+| `api.log.schema.management` | `BUILTIN` \| `FLYWAY` \| `NONE` | `BUILTIN` | How the `api_log` table is created. `BUILTIN` (default) — the starter runs `CREATE TABLE IF NOT EXISTS` on startup via Spring Boot's `DataSourceScriptDatabaseInitializer`; idempotent, no migration tool required. `FLYWAY` — appends `classpath:db/api-log` to `spring.flyway.locations` so the bundled migration runs alongside yours (requires `org.flywaydb:flyway-core` on the classpath; the starter declares it as optional). `NONE` — you apply the DDL yourself (see [Schema](schema.md)). |
 
 That's the entire surface area — the starter is intentionally minimal. Most behavior (retry policy, async executor, Flyway location) flows from standard Spring Boot configuration.
 
