@@ -40,3 +40,5 @@ data/
 
 ### Application properties (root level duplicate) ###
 application.properties
+# Test fixtures should be tracked though
+!src/test/resources/application.properties
