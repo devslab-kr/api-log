@@ -103,8 +103,8 @@ new ApiCallErrorEvent(
 | 컬럼 | 값 |
 |---|---|
 | `event_type` | `isRetry == true`이면 `RETRY_ERROR`, 아니면 `ERROR` |
-| `error_message` | `{"type": "<예외 클래스>", "message": "<메시지>"}` |
-| `status_code` | 예외가 `HttpClientErrorException` / `HttpServerErrorException`이면 업스트림 상태. 아니면 NULL. |
+| `error_message` | `{"type": "<FQCN>", "message": "<메시지>"}`. 예외가 Spring `HttpStatusCodeException` / `RestClientResponseException`이고 본문이 있으면 추가로 `"responseBody": "<업스트림 본문>"` 필드 포함 |
+| `status_code` | `HttpStatusCodeException.getStatusCode().value()`에서 추출 (`RestClientResponseException`도 동일). 비-HTTP 예외 (타임아웃, 연결 거부 등)는 NULL |
 | `retry_count` | `retryCount`에서 |
 | `is_retry` | `isRetry`에서 |
 

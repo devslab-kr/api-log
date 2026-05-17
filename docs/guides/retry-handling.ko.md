@@ -1,70 +1,39 @@
 # 재시도 처리
 
-외부 API는 실패합니다. 네트워크는 흔들립니다. 벤더에게도 안 좋은 날이 있습니다. `api-log`는 최종 결과뿐 아니라 모든 재시도 시도를 볼 수 있게 해서 — 불안정한 연동을 장애가 되기 전에 발견할 수 있게 합니다.
+외부 API는 실패합니다. 네트워크는 흔들립니다. 벤더에게도 안 좋은 날이 있습니다. `api-log`는 모든 재시도 시도를 볼 수 있게 해줍니다 — 다만 **어떻게** 볼 수 있는지는 재시도가 HTTP 레이어(당신의 코드)에서 일어나는지 로그 쓰기 레이어(리스너)에서 일어나는지에 따라 다릅니다.
 
-## 재시도가 기록되는 두 가지 경로
+## 두 가지 재시도 레이어, 두 가지 이야기
 
-| 출처 | 방법 | `event_type` |
+| 레이어 | 누가 재시도 | `api_log`에 보임? |
 |---|---|---|
-| Spring Retry (`@Retryable`) | 자동 — `RetryConfig`가 자동 임포트되어, `ApiCallErrorEvent` 재시도가 `RETRY_ERROR` 행으로 기록됨 | `RETRY_ERROR` |
-| 수동 재시도 루프 | `ApiCallErrorEvent` 발행 시 `isRetry = true`, `retryCount` 증가 | `RETRY_ERROR` |
+| **HTTP 호출** (벤더로 가는 외부 요청) | 당신의 코드 (`@Retryable`, Resilience4j, 직접 작성한 루프) | **이벤트를 직접 발행할 때만** 가능 — 아래 참고. 번들 `RestApiClientUtil`은 아직 재시도 컨텍스트를 전파하지 않음. |
+| **로그 쓰기** (리스너의 `api_log` INSERT) | `ApiEventListener` 자체 — `@Retryable(maxAttempts=3, backoff=1s)` | 투명. 실패한 로그 쓰기는 자동 재시도; 세 번 다 실패하면 리스너가 포기 (앱은 계속 동작). |
 
-## Spring Retry로
+이 가이드는 주로 HTTP 호출 레이어를 다룹니다.
 
-`RetryConfig`(`ApiLogAutoConfiguration`이 임포트)가 `@EnableRetry`를 호출합니다. HTTP 호출하는 메서드에 어노테이션:
+## 주의: `RestApiClientUtil`과 HTTP 재시도
+
+`RestApiClientUtil` 호출을 `@Retryable`로 감싸면:
 
 ```java
-@Service
-public class PaymentClient {
-
-    private final RestApiClientUtil api;
-
-    public PaymentClient(RestApiClientUtil api) {
-        this.api = api;
-    }
-
-    @Retryable(
-        retryFor = { ResourceAccessException.class, HttpServerErrorException.class },
-        maxAttempts = 3,
-        backoff = @Backoff(delay = 200, multiplier = 2.0)
-    )
-    public ChargeResult charge(ChargeRequest req) {
-        return api.postSyncTyped("/charges", req, ChargeResult.class);
-    }
-
-    @Recover
-    public ChargeResult recover(Exception e, ChargeRequest req) {
-        // 모든 재시도 소진 후 호출. api_log에 전체 이력이 이미 있음.
-        throw new PaymentTemporarilyUnavailableException(req.getId(), e);
-    }
+@Retryable(retryFor = HttpServerErrorException.class, maxAttempts = 3)
+public ChargeResult charge(ChargeRequest req) {
+    return api.postSyncTyped("/charges", req, ChargeResult.class);  // ← 번들 클라이언트
 }
 ```
 
-두 번 실패하고 세 번째에 성공한 `charge()` 한 번의 호출은 `api_log`에 **여섯 행**:
+…재시도는 동작하지만 `api_log` 행들이 시도 간 **상관관계가 없습니다**:
 
-```text
- id | event_type   | request_id  | retry_count | is_retry | status_code
-----+--------------+-------------+-------------+----------+-------------
-  6 | SUCCESS      | abc-...     |           0 | false    |         200
-  5 | INITIATED    | abc-...     |           0 | false    |
-  4 | RETRY_ERROR  | abc-...     |           1 | true     |         503
-  3 | INITIATED    | abc-...     |           1 | true     |
-  2 | RETRY_ERROR  | abc-...     |           0 | false    |         503
-  1 | INITIATED    | abc-...     |           0 | false    |
-```
+- 호출마다 **새 `request_id`** (UUID) 생성됨. 시도 1의 행들과 시도 2의 행들이 서로 다른 correlation key 가짐.
+- 에러 행은 모두 `retry_count = 0`, `is_retry = false` (재시도 컨텍스트가 전달되지 않음).
 
-여섯 행 모두 같은 `request_id`를 가지므로 전체 타임라인을 한 번에 조회 가능:
+재시도 타임라인 가시성이 중요하다면 그 호출은 `RestApiClientUtil` 대신 **이벤트를 직접 발행**하세요 (아래).
 
-```sql
-SELECT event_type, retry_count, status_code, timestamp
-FROM api_log
-WHERE request_id = 'abc-...'
-ORDER BY id;
-```
+(`RestApiClientUtil`에 재시도 컨텍스트를 통합하는 건 로드맵에 있습니다 — [Contributing](../contributing.md#roadmap) 참고.)
 
-## 자체 재시도 루프로
+## HTTP 재시도 추적 — 이벤트 직접 발행
 
-이미 재시도 로직(Resilience4j, 백오프 라이브러리, 직접 작성한 루프)이 있다면 이벤트를 직접 발행:
+`requestId`를 당신이 소유하므로 시도 간 재사용 가능합니다. 깔끔한 재시도 타임라인을 얻는 지원되는 방법:
 
 ```java
 @Service
@@ -72,12 +41,14 @@ ORDER BY id;
 public class FlakyVendorClient {
 
     private final ApplicationEventPublisher publisher;
-    private final HttpClient http;
+    private final HttpClient http;   // 자체 HTTP 클라이언트
 
     public Result call(Request input) {
         ApiRequest req = ApiRequest.builder()
                 .endpoint("/vendor/api")
                 .payload(input.toJson())
+                // 모든 재시도에서 같은 requestId — 이게 correlation key.
+                .requestId(UUID.randomUUID().toString())
                 .build();
 
         Exception lastError = null;
@@ -104,41 +75,58 @@ public class FlakyVendorClient {
 }
 ```
 
-## 자주 쓰는 쿼리
+두 번 실패하고 세 번째에 성공한 호출의 결과 — `request_id`로 상관된 **여섯 행**:
 
-**재시도율 높은 엔드포인트 (최근 24시간):**
+```text
+ id | event_type   | request_id  | retry_count | is_retry | status_code
+----+--------------+-------------+-------------+----------+-------------
+  6 | SUCCESS      | abc-...     |           0 | false    |         200
+  5 | INITIATED    | abc-...     |           0 | false    |
+  4 | RETRY_ERROR  | abc-...     |           1 | true     |         503
+  3 | INITIATED    | abc-...     |           1 | true     |
+  2 | RETRY_ERROR  | abc-...     |           0 | false    |         503
+  1 | INITIATED    | abc-...     |           0 | false    |
+```
+
+타임라인 조회:
 
 ```sql
-SELECT endpoint,
-       COUNT(*) FILTER (WHERE event_type = 'RETRY_ERROR') AS retries,
-       COUNT(*) FILTER (WHERE event_type IN ('SUCCESS','ERROR')) AS terminals,
-       ROUND(
-         COUNT(*) FILTER (WHERE event_type = 'RETRY_ERROR')::numeric
-           / NULLIF(COUNT(*) FILTER (WHERE event_type IN ('SUCCESS','ERROR')), 0),
-         2
-       ) AS retries_per_call
+SELECT event_type, retry_count, status_code, timestamp
 FROM api_log
-WHERE timestamp > NOW() - INTERVAL '24 hours'
-GROUP BY endpoint
-HAVING COUNT(*) FILTER (WHERE event_type = 'RETRY_ERROR') > 0
-ORDER BY retries_per_call DESC;
+WHERE request_id = 'abc-...'
+ORDER BY id;
 ```
+
+## 로그 쓰기 회복력 — `ApiEventListener`가 해주는 것
+
+PostgreSQL 연결이 INSERT 도중 흔들려도, 단 한 번의 로그 행 손실로 트리거 요청 자체가 죽지 않도록 해야 합니다. `ApiEventListener`가 처리:
+
+```java
+@EventListener
+@Async
+@Retryable(maxAttempts = 3, backoff = @Backoff(delay = 1000))
+public void onApiCallInitiated(ApiCallInitiatedEvent event) {
+    apiLogService.saveApiCallInitiated(event);
+}
+```
+
+세 저장 메서드(`onApiCallInitiated`, `onApiCallSuccess`, `onApiCallError`)에 각각 `@Retryable(maxAttempts=3, backoff=1s)` 적용. 저장이 던지면 Spring Retry가 리스너를 최대 3회 1초 백오프로 재시도. 소진되면 ERROR 레벨로 로깅하고 앱은 계속 — 비즈니스 경로는 불안정한 로그 테이블에 영향받지 않음.
+
+투명함 — 설정 필요 없음. 이게 운영에서 켜둘 수 있게 만드는 핵심.
+
+## 자주 쓰는 쿼리
 
 **재시도 끝에 성공한 호출:**
 
 ```sql
 SELECT request_id, endpoint, MAX(retry_count) AS attempts_before_success
 FROM api_log
-WHERE request_id IN (
-    SELECT request_id FROM api_log WHERE event_type = 'SUCCESS'
-)
-AND request_id IN (
-    SELECT request_id FROM api_log WHERE event_type = 'RETRY_ERROR'
-)
+WHERE request_id IN (SELECT request_id FROM api_log WHERE event_type = 'SUCCESS')
+  AND request_id IN (SELECT request_id FROM api_log WHERE event_type = 'RETRY_ERROR')
 GROUP BY request_id, endpoint;
 ```
 
-**재시도 모두 소진하고도 실패한 호출:**
+**재시도 모두 소진하고 실패한 호출:**
 
 ```sql
 SELECT endpoint, request_id, MAX(retry_count) AS final_attempt, MAX(timestamp) AS gave_up_at
@@ -147,6 +135,19 @@ WHERE request_id NOT IN (SELECT request_id FROM api_log WHERE event_type = 'SUCC
   AND event_type = 'RETRY_ERROR'
 GROUP BY endpoint, request_id
 ORDER BY gave_up_at DESC;
+```
+
+**엔드포인트별 재시도율 (최근 24h):**
+
+```sql
+SELECT endpoint,
+       COUNT(*) FILTER (WHERE event_type = 'RETRY_ERROR') AS retries,
+       COUNT(*) FILTER (WHERE event_type IN ('SUCCESS','ERROR')) AS terminals
+FROM api_log
+WHERE timestamp > NOW() - INTERVAL '24 hours'
+GROUP BY endpoint
+HAVING COUNT(*) FILTER (WHERE event_type = 'RETRY_ERROR') > 0
+ORDER BY retries DESC;
 ```
 
 ## 같이 보기

@@ -35,14 +35,14 @@ public class RestApiClientUtil {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                String responseData = restClient.post()
+                ResponseEntity<String> entity = restClient.post()
                         .uri(endpoint)
                         .body(payload)
                         .retrieve()
-                        .body(String.class);
+                        .toEntity(String.class);
                 ApiResponse response = ApiResponse.builder()
-                        .data(responseData)
-                        .statusCode(200)
+                        .data(entity.getBody())
+                        .statusCode(entity.getStatusCode().value())
                         .build();
                 eventPublisher.publishEvent(new ApiCallSuccessEvent(this, request, response));
                 return response;
@@ -61,14 +61,14 @@ public class RestApiClientUtil {
         eventPublisher.publishEvent(new ApiCallInitiatedEvent(this, request));
 
         try {
-            String responseData = restClient.post()
+            ResponseEntity<String> entity = restClient.post()
                     .uri(endpoint)
                     .body(payload)
                     .retrieve()
-                    .body(String.class);
+                    .toEntity(String.class);
             ApiResponse response = ApiResponse.builder()
-                    .data(responseData)
-                    .statusCode(200)
+                    .data(entity.getBody())
+                    .statusCode(entity.getStatusCode().value())
                     .build();
             eventPublisher.publishEvent(new ApiCallSuccessEvent(this, request, response));
             return response;
@@ -86,13 +86,13 @@ public class RestApiClientUtil {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                String responseData = restClient.get()
+                ResponseEntity<String> entity = restClient.get()
                         .uri(endpoint)
                         .retrieve()
-                        .body(String.class);
+                        .toEntity(String.class);
                 ApiResponse response = ApiResponse.builder()
-                        .data(responseData)
-                        .statusCode(200)
+                        .data(entity.getBody())
+                        .statusCode(entity.getStatusCode().value())
                         .build();
                 eventPublisher.publishEvent(new ApiCallSuccessEvent(this, request, response));
                 return response;
@@ -110,13 +110,13 @@ public class RestApiClientUtil {
         eventPublisher.publishEvent(new ApiCallInitiatedEvent(this, request));
 
         try {
-            String responseData = restClient.get()
+            ResponseEntity<String> entity = restClient.get()
                     .uri(endpoint)
                     .retrieve()
-                    .body(String.class);
+                    .toEntity(String.class);
             ApiResponse response = ApiResponse.builder()
-                    .data(responseData)
-                    .statusCode(200)
+                    .data(entity.getBody())
+                    .statusCode(entity.getStatusCode().value())
                     .build();
             eventPublisher.publishEvent(new ApiCallSuccessEvent(this, request, response));
             return response;

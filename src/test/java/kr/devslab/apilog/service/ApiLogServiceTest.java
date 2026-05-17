@@ -14,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 
 import static kr.devslab.apilog.Constants.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -154,6 +156,59 @@ class ApiLogServiceTest {
         assertThat(saved.getEventType()).isEqualTo(INITIATED);
         assertThat(saved.getEndpoint()).isEqualTo("/api/test");
         assertThat(saved.getPayload()).isNotNull(); // Should create empty ObjectNode
+    }
+
+    @Test
+    void saveApiCallError_writesStructuredErrorMessage() {
+        ApiRequest request = ApiRequest.builder()
+                .endpoint("/api/test")
+                .build();
+        IllegalStateException error = new IllegalStateException("connection broken");
+        ApiCallErrorEvent event = new ApiCallErrorEvent(this, request, error, 0, false);
+
+        apiLogService.saveApiCallError(event);
+
+        verify(repository).save(entityCaptor.capture());
+        ApiLogEntity saved = entityCaptor.getValue();
+
+        // Should be a structured {type, message} object, not just a raw string.
+        assertThat(saved.getErrorMessage()).isNotNull();
+        assertThat(saved.getErrorMessage().get("type").asText())
+                .isEqualTo("java.lang.IllegalStateException");
+        assertThat(saved.getErrorMessage().get("message").asText())
+                .isEqualTo("connection broken");
+        // No upstream response body for a non-HTTP exception.
+        assertThat(saved.getErrorMessage().has("responseBody")).isFalse();
+        // Non-HTTP exceptions don't carry a status code.
+        assertThat(saved.getStatusCode()).isNull();
+    }
+
+    @Test
+    void saveApiCallError_extractsHttpStatusAndResponseBody() {
+        ApiRequest request = ApiRequest.builder()
+                .endpoint("/api/test")
+                .build();
+        HttpClientErrorException error = HttpClientErrorException.create(
+                HttpStatus.NOT_FOUND,
+                "Not Found",
+                org.springframework.http.HttpHeaders.EMPTY,
+                "{\"error\":\"user not found\"}".getBytes(),
+                null
+        );
+        ApiCallErrorEvent event = new ApiCallErrorEvent(this, request, error, 0, false);
+
+        apiLogService.saveApiCallError(event);
+
+        verify(repository).save(entityCaptor.capture());
+        ApiLogEntity saved = entityCaptor.getValue();
+
+        // status_code lifted off the Spring exception — was always NULL before v0.4.0.
+        assertThat(saved.getStatusCode()).isEqualTo(404);
+        // error_message carries type + message + upstream responseBody.
+        assertThat(saved.getErrorMessage().get("type").asText())
+                .contains("HttpClientErrorException");
+        assertThat(saved.getErrorMessage().get("responseBody").asText())
+                .isEqualTo("{\"error\":\"user not found\"}");
     }
 
     @Test

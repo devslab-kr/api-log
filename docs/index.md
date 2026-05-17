@@ -59,9 +59,9 @@ Bodies (`payload`, `response`, `error_message`) are stored as JSONB — queryabl
 
     Request bodies, response bodies, and error details are stored as JSONB. Index with GIN, query with `->`, `->>`, `jsonb_path_query`. Schema-less where it matters, structured where you need it.
 
--   :material-restart: **Retry-aware**
+-   :material-restart: **Retry-aware schema**
 
-    Integrates with Spring Retry. Each failed retry produces its own `RETRY_ERROR` row with `retry_count` — full timeline of every attempt.
+    `RETRY_ERROR` event type + `retry_count` / `is_retry` columns let you record every attempt of a flaky call. The listener also retries its own log writes 3× on transient DB failures, so a wobbly connection doesn't lose log rows.
 
 -   :material-rocket-launch: **Virtual Threads ready**
 
@@ -71,9 +71,9 @@ Bodies (`payload`, `response`, `error_message`) are stored as JSONB — queryabl
 
     Auto-configuration registers `ApiEventListener`, `ApiLogService`, and `RestApiClientUtil` behind `@ConditionalOnMissingBean`. Override any of them by declaring your own.
 
--   :material-shield-check: **Production-tested**
+-   :material-shield-check: **CI-verified**
 
-    Used in Devslab's own SaaS infrastructure before open-sourcing. 31 tests including PostgreSQL integration tests via Testcontainers.
+    Comprehensive test suite covering services, repository, listener, and Testcontainers-backed PostgreSQL integration — runs on every PR and push.
 
 </div>
 

@@ -59,9 +59,9 @@ SELECT event_type, endpoint, status_code, timestamp FROM api_log ORDER BY id DES
 
     요청·응답·에러 본문이 JSONB로 저장. GIN 인덱스, `->`, `->>`, `jsonb_path_query` 그대로 사용. 필요한 곳은 구조화, 유연해야 할 곳은 스키마리스.
 
--   :material-restart: **재시도 인식**
+-   :material-restart: **재시도 인식 스키마**
 
-    Spring Retry와 통합. 재시도 실패마다 `RETRY_ERROR` 행이 별도로 생성되며 `retry_count`가 함께 기록되어 모든 시도의 타임라인을 복원할 수 있습니다.
+    `RETRY_ERROR` 이벤트 타입 + `retry_count` / `is_retry` 컬럼으로 불안정한 호출의 매 시도를 기록 가능. 리스너 자체도 일시적 DB 실패에 대해 로그 쓰기를 3번 재시도하므로 흔들리는 연결로 로그 행이 손실되지 않음.
 
 -   :material-rocket-launch: **Virtual Threads 지원**
 
@@ -71,9 +71,9 @@ SELECT event_type, endpoint, status_code, timestamp FROM api_log ORDER BY id DES
 
     자동 구성으로 `ApiEventListener`, `ApiLogService`, `RestApiClientUtil`을 `@ConditionalOnMissingBean`으로 등록. 직접 빈을 정의하면 모두 오버라이드 가능.
 
--   :material-shield-check: **운영 검증**
+-   :material-shield-check: **CI 검증**
 
-    오픈소스 공개 전에 Devslab SaaS 인프라에서 먼저 사용. Testcontainers 기반 PostgreSQL 통합 테스트 31개 포함.
+    서비스·리포지토리·리스너·Testcontainers 기반 PostgreSQL 통합까지 커버하는 포괄적 테스트 스위트 — CI에서 매 PR/푸시마다 실행.
 
 </div>
 

@@ -6,6 +6,30 @@
 
 ## [Unreleased]
 
+## [0.4.0] — 버그 픽스: 실제 상태 코드, 구조화된 에러, 정직해진 재시도 문서
+
+### Fixed
+
+- **`RestApiClientUtil` raw 메서드가 실제 HTTP 상태 코드를 보고.** `getSync`, `postSync(String, String)`, `getAsync`, `postAsync(String, String)`이 실제 응답과 무관하게 `statusCode = 200` 하드코딩 (201, 204 다 200으로 저장). 타입 메서드(`*Typed`)는 영향 없었음. 내부적으로 `.body(String.class)` → `.toEntity(String.class)`로 전환.
+- **`ApiLogService.saveApiCallError`가 Spring 예외에서 HTTP 상태 추출.** ERROR / RETRY_ERROR 행의 `status_code`는 항상 NULL이었음. 이제 `HttpStatusCodeException` / `RestClientResponseException`에서 추출.
+- **`error_message` JSONB 컬럼이 문서 형식과 일치.** 이전엔 `toJsonNode(message)` — 예외 메시지 문자열만 — 으로 저장되어 문서의 `{type, message}` 약속과 모순. 이제 구조화: `{"type": "<FQCN>", "message": "<메시지>" [, "responseBody": "<업스트림 본문>"]}`.
+
+### Docs
+
+- **`retry-handling` 가이드 재작성**: `RestApiClientUtil`은 재시도 컨텍스트를 전파하지 않음(매 재시도마다 새 `request_id`). 재시도 타임라인 추적의 지원 경로는 이벤트 직접 발행. `ApiEventListener`의 `@Retryable` 로그 쓰기 재시도 섹션 추가.
+- **`error_message` 레퍼런스 업데이트**: 새 `responseBody` 필드 문서화 (본문을 가진 HTTP 예외에만 존재).
+- README 스키마 컬럼 정정: `event_type VARCHAR(50)` (이전 20), `request_id VARCHAR(36)` (이전 255).
+- "Production-tested" / "Spring Retry integration with RETRY_ERROR events" 잘못된 주장 제거.
+- Maven Central + CI 배지 READMEs에 추가.
+
+### v0.3.0에서 마이그레이션
+
+대부분 호환 — 같은 API. 주의:
+
+- **raw 메서드 SUCCESS 행의 `status_code`**: 항상 200이었음, 이제 실제 반영 (201, 204 등). `status_code = 200`을 하드코딩한 쿼리는 조정 필요.
+- **`error_message` JSONB 형식**: 원시 메시지 문자열 또는 `{"raw": "..."}` fallback이었음. 이제 구조화 `{type, message, responseBody?}`. `error_message ->> 'raw'` 쿼리는 더 이상 매치 안 됨 — `error_message ->> 'message'` 사용.
+- **ERROR 행의 `status_code`**: 항상 NULL이었음. 이제 Spring 예외에서 추출 (타임아웃 같은 비-HTTP 예외는 NULL).
+
 ## [0.3.0] — BUILTIN 스키마 관리가 새 기본값
 
 ### Changed
@@ -77,11 +101,12 @@ v0.1.0의 자동 마이그레이션에 의존하고 있었다면:
 - `ApplicationEventPublisher`를 통한 비동기, 이벤트 드리븐 API 호출 로깅.
 - `RestApiClientUtil` 내장 HTTP 클라이언트 — `GET` / `POST` × `sync` / `async` × `raw` / `typed`.
 - 요청/응답/에러 본문의 PostgreSQL JSONB 저장.
-- Spring Retry 통합과 `RETRY_ERROR` 이벤트.
+- 재시도 시도를 위한 `RETRY_ERROR` 이벤트 타입 (사용자가 직접 발행하거나 본인의 `@Retryable` 래퍼를 통해).
 - `ApiLogAutoConfiguration`을 통한 자동 구성, `@ConditionalOnMissingBean` 오버라이드.
-- Testcontainers 기반 PostgreSQL 통합 테스트 31개.
+- 서비스·리포지토리·리스너·Testcontainers 기반 PostgreSQL 통합까지 포괄적 테스트.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.4.0
 [0.3.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.3.0
 [0.2.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.2.0
 [0.1.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.1.0

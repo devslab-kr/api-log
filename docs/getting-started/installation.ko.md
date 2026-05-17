@@ -41,7 +41,7 @@
 
 - `spring-boot-starter-data-jpa` (`ApiLogRepository`)
 - `spring-boot-starter-web` (내장 `RestApiClientUtil`)
-- `spring-retry` (재시도 인식 로깅)
+- `spring-retry` (`ApiEventListener`가 로그 쓰기 실패 시 3회까지 재시도)
 - `jackson-module-blackbird` (고성능 JSON 직렬화)
 - `postgresql` JDBC 드라이버 (runtime)
 
@@ -78,7 +78,7 @@ api:
 
 - `ApiLogService` — 영속화 오케스트레이터 (`ObjectMapper` 빈이 있어야 활성화)
 - `ApiEventListener` — 이벤트를 서비스로 연결하는 `@EventListener` (async)
-- `RetryConfig` — Spring Retry 통합을 위한 `@EnableRetry` 활성화
+- `RetryConfig` — `@EnableRetry` 활성화 (리스너의 로그 쓰기 `@Retryable` 동작용)
 - `ApiLogSchemaInitializer` — 부팅 시 `CREATE TABLE IF NOT EXISTS` 실행 (`schema.management=builtin` 활성화 시, 즉 기본값)
 - JPA `@EntityScan` 및 `@EnableJpaRepositories` (`kr.devslab.apilog.model`, `kr.devslab.apilog.repository`)
 

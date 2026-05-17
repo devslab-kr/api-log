@@ -43,7 +43,7 @@ The starter brings these for you transitively:
 
 - `spring-boot-starter-data-jpa` (the `ApiLogRepository`)
 - `spring-boot-starter-web` (the bundled `RestApiClientUtil`)
-- `spring-retry` (retry-aware logging)
+- `spring-retry` (lets `ApiEventListener` retry log-write failures 3× before giving up)
 - `jackson-module-blackbird` (high-throughput JSON serialization)
 - `postgresql` JDBC driver (runtime)
 
@@ -80,7 +80,7 @@ When the starter is on the classpath and `api.log.enabled` is `true` (the defaul
 
 - `ApiLogService` — the persistence orchestrator (gated on an `ObjectMapper` bean)
 - `ApiEventListener` — the `@EventListener` (async) that bridges events to the service
-- `RetryConfig` — enables `@EnableRetry` for Spring Retry integration
+- `RetryConfig` — enables `@EnableRetry` so the listener's own `@Retryable` log-write retries work
 - `ApiLogSchemaInitializer` — runs `CREATE TABLE IF NOT EXISTS` on startup (active for `schema.management=builtin`, the default)
 - JPA `@EntityScan` and `@EnableJpaRepositories` scoped to `kr.devslab.apilog.model` and `kr.devslab.apilog.repository`
 

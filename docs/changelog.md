@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [0.4.0] — Bug fixes: real status codes, structured errors, honest retry docs
+
+### Fixed
+
+- **`RestApiClientUtil` raw methods now report the actual HTTP status code.** `getSync`, `postSync(String, String)`, `getAsync`, `postAsync(String, String)` were hardcoding `statusCode = 200` regardless of the real response (201, 204, etc. all stored as 200). The typed methods (`*Typed`) were never affected. Internally switched from `.body(String.class)` to `.toEntity(String.class)`.
+- **`ApiLogService.saveApiCallError` now extracts HTTP status from Spring exceptions.** `status_code` was always NULL on ERROR / RETRY_ERROR rows. Now lifted off `HttpStatusCodeException` / `RestClientResponseException`.
+- **`error_message` JSONB column now matches the documented shape.** Previously stored as `toJsonNode(message)` — just the raw exception message string — which contradicted docs that promised `{type, message}`. Now writes structured `{"type": "<fqcn>", "message": "<message>" [, "responseBody": "<upstream body>"]}`.
+
+### Docs
+
+- **`retry-handling` guide rewritten** to be accurate: `RestApiClientUtil` does NOT propagate retry context (each retry gets a new `request_id`); the supported path for retry-timeline tracking is manual event publishing. Added a section on `ApiEventListener`'s own `@Retryable` log-write retries.
+- **`error_message` reference updated** to document the new `responseBody` field (only present for HTTP exceptions carrying a body).
+- README schema columns corrected: `event_type VARCHAR(50)` (was 20), `request_id VARCHAR(36)` (was 255).
+- Removed misleading "Production-tested" / "Spring Retry integration with RETRY_ERROR events" claims.
+- Maven Central and CI badges added to READMEs.
+
+### Migration from v0.3.0
+
+Mostly backward-compatible — same API. Watch for:
+
+- **`status_code` column on raw-method SUCCESS rows**: was always 200, now reflects reality (201, 204, etc.). Any query that hardcoded `status_code = 200` may need adjustment.
+- **`error_message` JSONB shape**: was a raw message string or `{"raw": "..."}` fallback. Now structured `{type, message, responseBody?}`. Queries against `error_message ->> 'raw'` no longer match — use `error_message ->> 'message'`.
+- **`status_code` column on ERROR rows**: was always NULL. Now lifted from Spring exceptions when applicable (NULL for non-HTTP exceptions like timeouts).
+
 ## [0.3.0] — BUILTIN schema management is the new default
 
 ### Changed
@@ -77,11 +101,12 @@ First public release. Repackaged as a standalone Spring Boot starter.
 - Async, event-driven API call logging via `ApplicationEventPublisher`.
 - `RestApiClientUtil` bundled HTTP client with `GET` / `POST` × `sync` / `async` × `raw` / `typed`.
 - PostgreSQL JSONB storage for request/response/error bodies.
-- Spring Retry integration with `RETRY_ERROR` events.
+- `RETRY_ERROR` event type for retry attempts (consumer publishes manually or via their own `@Retryable` wrapper).
 - Auto-configuration via `ApiLogAutoConfiguration` with `@ConditionalOnMissingBean` overrides.
-- 31 tests including PostgreSQL integration via Testcontainers.
+- comprehensive test suite covering services, repository, listener, and Testcontainers-backed PostgreSQL integration.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.4.0
 [0.3.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.3.0
 [0.2.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.2.0
 [0.1.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.1.0

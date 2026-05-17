@@ -4,9 +4,13 @@
 
 > Event-driven API call logging for Spring Boot. Async event pipeline with PostgreSQL JSONB storage.
 
+[![Maven Central](https://img.shields.io/maven-central/v/kr.devslab/api-log-spring-boot-starter.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/kr.devslab/api-log-spring-boot-starter)
+[![CI](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml/badge.svg)](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5+-green.svg)](https://spring.io/projects/spring-boot)
+
+📖 **[Documentation → api-log.devslab.kr](https://api-log.devslab.kr/)**
 
 ## What it does
 
@@ -43,7 +47,7 @@ Bodies are stored as JSONB, so you can query them with `->`, `->>`, and GIN inde
 
 - **Non-blocking** — log writes happen on a separate thread, never on the request path
 - **PostgreSQL JSONB** — request/response/error bodies preserved as queryable JSON
-- **Retry-aware** — Spring Retry integration; each retry recorded individually
+- **Retry-aware schema** — `RETRY_ERROR` event + `retry_count` / `is_retry` columns for tracking flaky calls. The listener also retries its own log writes 3× on transient DB failures.
 - **Virtual Threads ready** — designed for Java 21+ async with low memory footprint
 - **Drop-in starter** — auto-configuration registers all beans behind `@ConditionalOnMissingBean`
 
@@ -158,8 +162,8 @@ public class MyClient {
 | Column          | Type         | Notes                                       |
 |-----------------|--------------|---------------------------------------------|
 | `id`            | BIGSERIAL    | PK                                          |
-| `event_type`    | VARCHAR(20)  | `INITIATED`, `SUCCESS`, `ERROR`, `RETRY_ERROR` |
-| `request_id`    | VARCHAR(255) | Correlation id                              |
+| `event_type`    | VARCHAR(50)  | `INITIATED`, `SUCCESS`, `ERROR`, `RETRY_ERROR` |
+| `request_id`    | VARCHAR(36)  | UUID correlation id                            |
 | `endpoint`      | VARCHAR(255) | Target URL                                  |
 | `payload`       | JSONB        | Request body                                |
 | `response`      | JSONB        | Response body                               |

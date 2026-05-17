@@ -103,8 +103,8 @@ new ApiCallErrorEvent(
 | Column | Value |
 |---|---|
 | `event_type` | `RETRY_ERROR` if `isRetry == true`, else `ERROR` |
-| `error_message` | `{"type": "<exception class>", "message": "<message>"}` |
-| `status_code` | If the exception is an `HttpClientErrorException` / `HttpServerErrorException`, the upstream status. Otherwise NULL. |
+| `error_message` | `{"type": "<fqcn>", "message": "<message>"}` plus `"responseBody": "<upstream body>"` when the exception is a Spring `HttpStatusCodeException` / `RestClientResponseException` carrying a body |
+| `status_code` | Lifted from `HttpStatusCodeException.getStatusCode().value()` (or `RestClientResponseException`). NULL for non-HTTP exceptions (timeouts, connection refused, etc.) |
 | `retry_count` | from `retryCount` |
 | `is_retry` | from `isRetry` |
 

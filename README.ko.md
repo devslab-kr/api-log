@@ -4,9 +4,13 @@
 
 > Spring Boot 기반의 이벤트 드리븐 API 호출 로깅 스타터. 비동기 이벤트 파이프라인 + PostgreSQL JSONB 저장.
 
+[![Maven Central](https://img.shields.io/maven-central/v/kr.devslab/api-log-spring-boot-starter.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/kr.devslab/api-log-spring-boot-starter)
+[![CI](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml/badge.svg)](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5+-green.svg)](https://spring.io/projects/spring-boot)
+
+📖 **[문서 → api-log.devslab.kr](https://api-log.devslab.kr/ko/)**
 
 Spring Boot 기반의 이벤트 드리븐 API 호출 로깅 시스템입니다. PostgreSQL JSONB를 활용하여 효율적으로 API 호출 데이터를 저장하고 관리합니다.
 
@@ -134,8 +138,8 @@ CompletableFuture<ApiResponse> future = restApiClient.postAsync("/api/users", us
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | BIGSERIAL | 기본키 |
-| event_type | VARCHAR(20) | INITIATED, SUCCESS, ERROR, RETRY_ERROR |
-| request_id | VARCHAR(255) | 요청 추적 ID |
+| event_type | VARCHAR(50) | INITIATED, SUCCESS, ERROR, RETRY_ERROR |
+| request_id | VARCHAR(36) | UUID 요청 추적 ID |
 | endpoint | VARCHAR(255) | API 엔드포인트 |
 | payload | JSONB | 요청 데이터 (JSON) |
 | response | JSONB | 응답 데이터 (JSON) |
@@ -207,9 +211,11 @@ public void callExternalApi() {
 - 위 의존성만 추가하면 다음이 자동으로 구성됩니다.
   - 엔티티 스캔, JPA 리포지토리 스캔
   - ApiLogService, ApiEventListener 빈 등록 (@ConditionalOnMissingBean)
-  - @EnableRetry 설정 (재시도 시 RETRY_ERROR 이벤트 로깅)
+  - ApiLogSchemaInitializer (기본 BUILTIN이면 부팅 시 `CREATE TABLE IF NOT EXISTS` 실행)
+  - @EnableRetry 활성화 — `ApiEventListener`가 로그 INSERT 실패 시 최대 3회 재시도
 
 > 주의: 데이터베이스 및 JPA 설정은 소비 애플리케이션에서 제공해야 합니다. ObjectMapper 빈도 애플리케이션에 존재해야 합니다.
+> HTTP 호출 자체의 재시도 추적은 [재시도 가이드](https://api-log.devslab.kr/ko/guides/retry-handling/) 참고.
 
 ### 전제 조건 (소비 애플리케이션에서 제공)
 
@@ -256,7 +262,7 @@ api:
 ### 테스트 특징
 
 - **Testcontainers**: 실제 PostgreSQL 컨테이너를 사용한 통합 테스트
-- **31개 테스트**: 모든 주요 기능에 대한 포괄적 테스트
+- **포괄적 테스트**: 서비스·리포지토리·리스너·Testcontainers 기반 PostgreSQL 통합까지 커버
 - **격리된 환경**: 각 테스트는 독립적인 데이터베이스 사용
 
 ## 🔧 설정 커스터마이징

@@ -91,14 +91,23 @@ CREATE INDEX idx_api_log_event_ts ON api_log (event_type, timestamp DESC);
 
 ### `error_message`
 
+필수 두 필드 + 선택 한 필드의 구조화된 JSON:
+
 ```json
 {
-  "type": "org.springframework.web.client.HttpClientErrorException",
-  "message": "404 Not Found: [{\"error\":\"user not found\"}]"
+  "type": "org.springframework.web.client.HttpClientErrorException$NotFound",
+  "message": "404 Not Found: [no body]",
+  "responseBody": "{\"error\":\"user not found\"}"
 }
 ```
 
-`error_message ->> 'type'` 또는 `error_message ->> 'message'`로 조회.
+| 필드 | 언제 존재하나 |
+|---|---|
+| `type` | 항상 — Throwable의 FQCN |
+| `message` | 항상 — `Throwable.getMessage()` (null 가능) |
+| `responseBody` | Spring `HttpStatusCodeException` / `RestClientResponseException`이고 업스트림 응답에 본문이 있을 때만. 응답 본문 원본 문자열. |
+
+`error_message ->> 'type'`, `error_message ->> 'message'`, `error_message ->> 'responseBody'`로 조회. 업스트림 본문이 캡처된 행만 필터: `error_message ? 'responseBody'`.
 
 ## 같이 보기
 

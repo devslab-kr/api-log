@@ -1,70 +1,39 @@
 # Retry handling
 
-External APIs fail. Networks blip. Vendors have bad afternoons. `api-log` makes every retry attempt visible — not just the final outcome — so you can spot flaky integrations before they become outages.
+External APIs fail. Networks blip. Vendors have bad afternoons. `api-log` can make every retry attempt visible — but the **how** depends on whether the retry happens at the HTTP layer (your code) or at the log-write layer (the listener).
 
-## Two ways retries get logged
+## Two retry layers, two stories
 
-| Source | How | `event_type` |
+| Layer | Who retries | Visible in `api_log`? |
 |---|---|---|
-| Spring Retry (`@Retryable`) | Automatic — `RetryConfig` is auto-imported, retries on `ApiCallErrorEvent` produce `RETRY_ERROR` rows | `RETRY_ERROR` |
-| Manual retry loop | You set `isRetry = true` and bump `retryCount` when publishing `ApiCallErrorEvent` | `RETRY_ERROR` |
+| **HTTP call** (the outbound request to a vendor) | Your code (`@Retryable`, Resilience4j, hand-rolled) | Only if **you publish events manually** — see below. The bundled `RestApiClientUtil` does NOT propagate retry context yet. |
+| **Log write** (the listener's INSERT into `api_log`) | `ApiEventListener` itself — `@Retryable(maxAttempts=3, backoff=1s)` | Transparent. Failed log writes are retried automatically; if all three attempts fail, the listener gives up (your app keeps running). |
 
-## With Spring Retry
+The rest of this guide covers the HTTP-call layer.
 
-`RetryConfig` (imported by `ApiLogAutoConfiguration`) calls `@EnableRetry` for you. Annotate the method that makes the HTTP call:
+## Heads-up: `RestApiClientUtil` and HTTP retries
+
+If you wrap a `RestApiClientUtil` call with `@Retryable`:
 
 ```java
-@Service
-public class PaymentClient {
-
-    private final RestApiClientUtil api;
-
-    public PaymentClient(RestApiClientUtil api) {
-        this.api = api;
-    }
-
-    @Retryable(
-        retryFor = { ResourceAccessException.class, HttpServerErrorException.class },
-        maxAttempts = 3,
-        backoff = @Backoff(delay = 200, multiplier = 2.0)
-    )
-    public ChargeResult charge(ChargeRequest req) {
-        return api.postSyncTyped("/charges", req, ChargeResult.class);
-    }
-
-    @Recover
-    public ChargeResult recover(Exception e, ChargeRequest req) {
-        // Called after all retries exhausted. api_log already has full history.
-        throw new PaymentTemporarilyUnavailableException(req.getId(), e);
-    }
+@Retryable(retryFor = HttpServerErrorException.class, maxAttempts = 3)
+public ChargeResult charge(ChargeRequest req) {
+    return api.postSyncTyped("/charges", req, ChargeResult.class);  // ← bundled client
 }
 ```
 
-A call that fails twice then succeeds writes **six rows** to `api_log` for one `charge()` invocation:
+…you'll get retries that work, but the `api_log` rows are NOT correlated across attempts:
 
-```text
- id | event_type   | request_id  | retry_count | is_retry | status_code
-----+--------------+-------------+-------------+----------+-------------
-  6 | SUCCESS      | abc-...     |           0 | false    |         200
-  5 | INITIATED    | abc-...     |           0 | false    |
-  4 | RETRY_ERROR  | abc-...     |           1 | true     |         503
-  3 | INITIATED    | abc-...     |           1 | true     |
-  2 | RETRY_ERROR  | abc-...     |           0 | false    |         503
-  1 | INITIATED    | abc-...     |           0 | false    |
-```
+- Each call generates a **fresh `request_id`** (UUID), so attempt 1's rows and attempt 2's rows have different correlation keys.
+- The error rows all read `retry_count = 0`, `is_retry = false` (no retry context is plumbed through).
 
-All six share the same `request_id` so you can pull the full timeline:
+If retry-timeline visibility matters, **publish events manually** instead of using `RestApiClientUtil` for that call. See below.
 
-```sql
-SELECT event_type, retry_count, status_code, timestamp
-FROM api_log
-WHERE request_id = 'abc-...'
-ORDER BY id;
-```
+(Plumbing retry context into `RestApiClientUtil` is on the roadmap; see [Contributing](../contributing.md#roadmap).)
 
-## With your own retry loop
+## Tracking HTTP retries — publish events manually
 
-If you've already got retry logic (Resilience4j, exponential backoff library, hand-rolled loop), publish the events yourself:
+You own the `requestId`, so you can reuse it across attempts. This is the supported way to get a clean retry timeline:
 
 ```java
 @Service
@@ -72,12 +41,14 @@ If you've already got retry logic (Resilience4j, exponential backoff library, ha
 public class FlakyVendorClient {
 
     private final ApplicationEventPublisher publisher;
-    private final HttpClient http;
+    private final HttpClient http;   // your own HTTP client
 
     public Result call(Request input) {
         ApiRequest req = ApiRequest.builder()
                 .endpoint("/vendor/api")
                 .payload(input.toJson())
+                // Same requestId across all retries — that's the correlation key.
+                .requestId(UUID.randomUUID().toString())
                 .build();
 
         Exception lastError = null;
@@ -104,37 +75,54 @@ public class FlakyVendorClient {
 }
 ```
 
-## Common queries
+A call that fails twice then succeeds writes **six rows** correlated by `request_id`:
 
-**Top endpoints by retry rate (last 24h):**
+```text
+ id | event_type   | request_id  | retry_count | is_retry | status_code
+----+--------------+-------------+-------------+----------+-------------
+  6 | SUCCESS      | abc-...     |           0 | false    |         200
+  5 | INITIATED    | abc-...     |           0 | false    |
+  4 | RETRY_ERROR  | abc-...     |           1 | true     |         503
+  3 | INITIATED    | abc-...     |           1 | true     |
+  2 | RETRY_ERROR  | abc-...     |           0 | false    |         503
+  1 | INITIATED    | abc-...     |           0 | false    |
+```
+
+Pull the timeline:
 
 ```sql
-SELECT endpoint,
-       COUNT(*) FILTER (WHERE event_type = 'RETRY_ERROR') AS retries,
-       COUNT(*) FILTER (WHERE event_type IN ('SUCCESS','ERROR')) AS terminals,
-       ROUND(
-         COUNT(*) FILTER (WHERE event_type = 'RETRY_ERROR')::numeric
-           / NULLIF(COUNT(*) FILTER (WHERE event_type IN ('SUCCESS','ERROR')), 0),
-         2
-       ) AS retries_per_call
+SELECT event_type, retry_count, status_code, timestamp
 FROM api_log
-WHERE timestamp > NOW() - INTERVAL '24 hours'
-GROUP BY endpoint
-HAVING COUNT(*) FILTER (WHERE event_type = 'RETRY_ERROR') > 0
-ORDER BY retries_per_call DESC;
+WHERE request_id = 'abc-...'
+ORDER BY id;
 ```
+
+## Log-write resilience — what `ApiEventListener` does for you
+
+If your PostgreSQL connection wobbles mid-INSERT, you don't want a single dropped log row to take down the request that triggered it. `ApiEventListener` handles this:
+
+```java
+@EventListener
+@Async
+@Retryable(maxAttempts = 3, backoff = @Backoff(delay = 1000))
+public void onApiCallInitiated(ApiCallInitiatedEvent event) {
+    apiLogService.saveApiCallInitiated(event);
+}
+```
+
+The three save methods (`onApiCallInitiated`, `onApiCallSuccess`, `onApiCallError`) each have `@Retryable(maxAttempts=3, backoff=1s)`. If a save throws, Spring Retry retries the listener up to 3 times with 1-second backoff. After exhaustion, the failure is logged at ERROR level and the application continues — your business path is never affected by a flaky log table.
+
+This is transparent — you don't configure anything. It's what makes the starter safe to leave on in production.
+
+## Common queries
 
 **Calls that needed retries to succeed:**
 
 ```sql
 SELECT request_id, endpoint, MAX(retry_count) AS attempts_before_success
 FROM api_log
-WHERE request_id IN (
-    SELECT request_id FROM api_log WHERE event_type = 'SUCCESS'
-)
-AND request_id IN (
-    SELECT request_id FROM api_log WHERE event_type = 'RETRY_ERROR'
-)
+WHERE request_id IN (SELECT request_id FROM api_log WHERE event_type = 'SUCCESS')
+  AND request_id IN (SELECT request_id FROM api_log WHERE event_type = 'RETRY_ERROR')
 GROUP BY request_id, endpoint;
 ```
 
@@ -147,6 +135,19 @@ WHERE request_id NOT IN (SELECT request_id FROM api_log WHERE event_type = 'SUCC
   AND event_type = 'RETRY_ERROR'
 GROUP BY endpoint, request_id
 ORDER BY gave_up_at DESC;
+```
+
+**Retry rate per endpoint (last 24h):**
+
+```sql
+SELECT endpoint,
+       COUNT(*) FILTER (WHERE event_type = 'RETRY_ERROR') AS retries,
+       COUNT(*) FILTER (WHERE event_type IN ('SUCCESS','ERROR')) AS terminals
+FROM api_log
+WHERE timestamp > NOW() - INTERVAL '24 hours'
+GROUP BY endpoint
+HAVING COUNT(*) FILTER (WHERE event_type = 'RETRY_ERROR') > 0
+ORDER BY retries DESC;
 ```
 
 ## See also

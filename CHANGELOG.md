@@ -7,6 +7,23 @@ The source of truth for the entries below is [docs/changelog.md](docs/changelog.
 
 ## [Unreleased]
 
+## [0.4.0] — Bug fixes: real status codes, structured errors, honest retry docs
+
+### Fixed
+
+- `RestApiClientUtil` raw methods: `status_code` was hardcoded to 200; now reflects the actual HTTP response status.
+- `ApiLogService.saveApiCallError`: `status_code` on ERROR/RETRY_ERROR rows was always NULL; now lifted from Spring `HttpStatusCodeException` / `RestClientResponseException`.
+- `error_message` JSONB column: was a raw message string; now structured `{type, message, responseBody?}` matching the docs.
+
+### Docs
+
+- Retry-handling guide rewritten to be accurate (RestApiClientUtil doesn't propagate retry context — supported path is manual event publishing).
+- Schema column types corrected in READMEs (VARCHAR(50)/(36), not VARCHAR(20)/(255)).
+- "Production-tested" claim removed; "Spring Retry integration with RETRY_ERROR events" rephrased — that claim was specifically wrong (Spring Retry applies to the listener's DB writes, not HTTP calls).
+- Maven Central + CI badges added to READMEs.
+
+Full migration notes from v0.3.0 in [docs/changelog.md](docs/changelog.md#040--bug-fixes-real-status-codes-structured-errors-honest-retry-docs).
+
 ## [0.3.0] — BUILTIN schema management is the new default
 
 ### Changed
@@ -32,7 +49,8 @@ See [docs/changelog.md](docs/changelog.md#020--schema-management-opt-in) for the
 
 First public release. See [docs/changelog.md](docs/changelog.md#010--initial-release) for details.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.4.0
 [0.3.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.3.0
 [0.2.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.2.0
 [0.1.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.1.0

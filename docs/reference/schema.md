@@ -91,14 +91,23 @@ For plain string payloads, it's wrapped: `{"data": "..."}` — `ApiLogService` d
 
 ### `error_message`
 
+Structured JSON with two required fields and one optional field:
+
 ```json
 {
-  "type": "org.springframework.web.client.HttpClientErrorException",
-  "message": "404 Not Found: [{\"error\":\"user not found\"}]"
+  "type": "org.springframework.web.client.HttpClientErrorException$NotFound",
+  "message": "404 Not Found: [no body]",
+  "responseBody": "{\"error\":\"user not found\"}"
 }
 ```
 
-Query with `error_message ->> 'type'` or `error_message ->> 'message'`.
+| Field | When present |
+|---|---|
+| `type` | Always — fully-qualified class name of the throwable |
+| `message` | Always — `Throwable.getMessage()` (may be null) |
+| `responseBody` | Only when the cause was a Spring `HttpStatusCodeException` / `RestClientResponseException` and the upstream returned a body. Carries the raw response body string. |
+
+Query with `error_message ->> 'type'`, `error_message ->> 'message'`, or `error_message ->> 'responseBody'`. Use `error_message ? 'responseBody'` to filter for rows that captured an upstream body.
 
 ## See also
 
