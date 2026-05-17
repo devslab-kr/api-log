@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [0.5.0] — PUT / DELETE / PATCH + retry-correlation via core API
+
+### Added
+
+- **PUT / DELETE / PATCH convenience methods on `RestApiClientUtil`** — 12 new methods following the existing GET/POST patterns: `putSync`, `putSyncTyped`, `putAsync`, `putAsyncTyped`, `deleteSync`, `deleteSyncTyped`, `deleteAsync`, `deleteAsyncTyped`, `patchSync`, `patchSyncTyped`, `patchAsync`, `patchAsyncTyped` (each with the appropriate `String` / typed-body / typed-response overloads).
+- **Core `send` / `sendAsync` / `sendTyped` / `sendAsyncTyped` API** taking `(HttpMethod, ApiRequest)` directly. Lets callers supply an explicit `requestId` so retry attempts share a correlation key — fills the gap documented in the v0.4.0 retry-handling guide.
+
+### Changed (internal — no public API change)
+
+- `RestApiClientUtil` refactored so all 22 public methods funnel through the four core `send*` methods. ~270 lines of duplicated try/catch/event-publish boilerplate collapsed into one place. Behavior identical to v0.4.0.
+
+### Tests
+
+- New `RestApiClientUtilRoutingTest` verifies each verb method routes through the correct `HttpMethod` and that `send(HttpMethod, ApiRequest)` respects a caller-provided `requestId`.
+
+### Migration from v0.4.0
+
+Fully backward-compatible — all v0.4.0 method signatures and behaviors are preserved. The new methods are additive.
+
 ## [0.4.0] — Bug fixes: real status codes, structured errors, honest retry docs
 
 ### Fixed
@@ -105,7 +124,8 @@ First public release. Repackaged as a standalone Spring Boot starter.
 - Auto-configuration via `ApiLogAutoConfiguration` with `@ConditionalOnMissingBean` overrides.
 - comprehensive test suite covering services, repository, listener, and Testcontainers-backed PostgreSQL integration.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.0
 [0.4.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.4.0
 [0.3.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.3.0
 [0.2.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.2.0

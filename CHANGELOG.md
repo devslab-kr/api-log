@@ -7,6 +7,19 @@ The source of truth for the entries below is [docs/changelog.md](docs/changelog.
 
 ## [Unreleased]
 
+## [0.5.0] — PUT / DELETE / PATCH + retry-correlation via core API
+
+### Added
+
+- **PUT / DELETE / PATCH** convenience methods on `RestApiClientUtil` (12 new methods, mirror the GET/POST shape).
+- **Core `send` / `sendAsync` / `sendTyped` / `sendAsyncTyped`** API taking `(HttpMethod, ApiRequest)` directly. Lets callers supply an explicit `requestId` so retry attempts share a correlation key.
+
+### Changed
+
+- Internal refactor: all 22 convenience methods on `RestApiClientUtil` now funnel through the four core `send*` methods. Public API unchanged, behavior identical to v0.4.0.
+
+Fully backward-compatible with v0.4.0. Full notes in [docs/changelog.md](docs/changelog.md#050--put--delete--patch--retry-correlation-via-core-api).
+
 ## [0.4.0] — Bug fixes: real status codes, structured errors, honest retry docs
 
 ### Fixed
@@ -49,7 +62,8 @@ See [docs/changelog.md](docs/changelog.md#020--schema-management-opt-in) for the
 
 First public release. See [docs/changelog.md](docs/changelog.md#010--initial-release) for details.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.0
 [0.4.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.4.0
 [0.3.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.3.0
 [0.2.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.2.0

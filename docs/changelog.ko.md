@@ -6,6 +6,25 @@
 
 ## [Unreleased]
 
+## [0.5.0] — PUT / DELETE / PATCH + 코어 API로 재시도 correlation
+
+### Added
+
+- **`RestApiClientUtil`에 PUT / DELETE / PATCH 편의 메서드** — 기존 GET/POST 패턴을 따르는 12개 신규 메서드: `putSync`, `putSyncTyped`, `putAsync`, `putAsyncTyped`, `deleteSync`, `deleteSyncTyped`, `deleteAsync`, `deleteAsyncTyped`, `patchSync`, `patchSyncTyped`, `patchAsync`, `patchAsyncTyped` (각각 `String` / 타입 바디 / 타입 응답 오버로드 적절히).
+- **코어 `send` / `sendAsync` / `sendTyped` / `sendAsyncTyped` API** — `(HttpMethod, ApiRequest)`를 직접 받음. 호출자가 명시적 `requestId`를 전달해 재시도 시도들이 correlation 키를 공유 — v0.4.0 재시도 가이드에서 지적한 갭을 채움.
+
+### Changed (내부 — 공개 API 변경 없음)
+
+- `RestApiClientUtil` 리팩토링: 22개 공개 메서드가 모두 코어 4개 `send*` 메서드로 흐름. try/catch/이벤트 발행 중복 코드 약 270줄이 한 곳으로 정리. 동작은 v0.4.0과 동일.
+
+### Tests
+
+- 새 `RestApiClientUtilRoutingTest` — 각 동사 메서드가 올바른 `HttpMethod`로 라우팅되고 `send(HttpMethod, ApiRequest)`가 호출자 제공 `requestId`를 존중하는지 검증.
+
+### v0.4.0에서 마이그레이션
+
+완전히 하위 호환 — v0.4.0의 모든 메서드 시그니처와 동작 보존. 새 메서드는 추가만.
+
 ## [0.4.0] — 버그 픽스: 실제 상태 코드, 구조화된 에러, 정직해진 재시도 문서
 
 ### Fixed
@@ -105,7 +124,8 @@ v0.1.0의 자동 마이그레이션에 의존하고 있었다면:
 - `ApiLogAutoConfiguration`을 통한 자동 구성, `@ConditionalOnMissingBean` 오버라이드.
 - 서비스·리포지토리·리스너·Testcontainers 기반 PostgreSQL 통합까지 포괄적 테스트.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.0
 [0.4.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.4.0
 [0.3.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.3.0
 [0.2.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.2.0
