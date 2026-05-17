@@ -30,6 +30,8 @@ theme:
     - content.tabs.link
     - content.action.edit
   palette:
+    # `custom` activates the CSS-variable-driven palette defined in
+    # docs/stylesheets/extra.css (matches devslab.kr brand colors).
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: custom
@@ -83,19 +85,10 @@ plugins:
 markdown_extensions:
   - admonition
   - attr_list
-  - def_list
-  - footnotes
   - md_in_html
+  - footnotes
   - tables
-  - toc:
-      permalink: true
   - pymdownx.details
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
@@ -103,11 +96,34 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
-  - pymdownx.tasklist:
-      custom_checkbox: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/devslab-kr/api-log
+    - icon: fontawesome/solid/globe
+      link: https://devslab.kr
+  alternate:
+    - name: English
+      link: /
+      lang: en
+    - name: 한국어
+      link: /ko/
+      lang: ko
 
 nav:
   - Home: index.md
@@ -125,12 +141,3 @@ nav:
       - Events: reference/events.md
   - Changelog: changelog.md
   - Contributing: contributing.md
-
-extra:
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/devslab-kr/api-log
-      name: GitHub
-    - icon: fontawesome/solid/globe
-      link: https://devslab.kr
-      name: Devslab
