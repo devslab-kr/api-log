@@ -6,6 +6,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/kr.devslab/api-log-spring-boot-starter.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/kr.devslab/api-log-spring-boot-starter)
 [![CI](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml/badge.svg)](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/devslab-kr/api-log/branch/master/graph/badge.svg)](https://codecov.io/gh/devslab-kr/api-log)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5+-green.svg)](https://spring.io/projects/spring-boot)
