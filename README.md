@@ -73,14 +73,14 @@ PostgreSQL  (api_log · JSONB columns)
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-spring-boot-starter</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```kotlin
-implementation("kr.devslab:api-log-spring-boot-starter:0.1.0-SNAPSHOT")
+implementation("kr.devslab:api-log-spring-boot-starter:0.2.0")
 ```
 
 ## Configuration
@@ -88,15 +88,25 @@ implementation("kr.devslab:api-log-spring-boot-starter:0.1.0-SNAPSHOT")
 ```yaml
 api:
   log:
-    enabled: true   # default: true
+    enabled: true              # default — set to false to disable the whole infrastructure
+    schema:
+      management: none         # default — see "Schema" below
 ```
 
 You bring your own:
 
 - `DataSource` pointing at a PostgreSQL database
 - `ObjectMapper` bean (Spring Boot's auto-config is fine)
+- Either the `api_log` table created via your own migration tool, OR the bundled Flyway migration (opt in below)
 
-The Flyway migration `V1.0__create_api_log.sql` ships with the starter — Spring Boot will pick it up if Flyway is on the classpath.
+### Schema
+
+The `api_log` table is **not** created automatically. Two options:
+
+1. **Apply the DDL yourself** (default, recommended for production) — see the [Schema reference](https://api-log.devslab.kr/reference/schema/) for the SQL, then put it in your own Flyway/Liquibase/manual flow.
+2. **Opt in to the bundled migration** — add Flyway to your dependencies and set `api.log.schema.management=flyway`. The starter then appends `classpath:db/api-log` to your Flyway locations.
+
+Full installation guide: [api-log.devslab.kr/getting-started/installation](https://api-log.devslab.kr/getting-started/installation/).
 
 ## Using `RestApiClientUtil`
 

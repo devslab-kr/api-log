@@ -22,7 +22,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ConditionalOnProperty(name = "api.log.enabled", havingValue = "true", matchIfMissing = true)
 @EntityScan(basePackages = "kr.devslab.apilog.model")
 @EnableJpaRepositories(basePackages = "kr.devslab.apilog.repository")
-@Import(RetryConfig.class)
+@Import({RetryConfig.class, ApiLogFlywayConfig.class})
 public class ApiLogAutoConfiguration {
 
     @Bean

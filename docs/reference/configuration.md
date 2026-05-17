@@ -7,8 +7,9 @@ All configuration is under the `api.log` prefix. The starter ships with sensible
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `api.log.enabled` | `boolean` | `true` | Master switch. When `false`, `ApiLogAutoConfiguration` short-circuits and no beans are registered (no listener, no service, no `RestApiClientUtil`). |
+| `api.log.schema.management` | `NONE` \| `FLYWAY` | `NONE` | How the `api_log` table is created. `NONE` — you apply the DDL yourself (see [Schema](schema.md)). `FLYWAY` — the starter appends `classpath:db/api-log` to `spring.flyway.locations` so the bundled migration runs alongside yours. `FLYWAY` requires `org.flywaydb:flyway-core` on the classpath (added by the consumer, since the starter declares it as optional). |
 
-That's currently the entire surface area — the starter is intentionally minimal. Most behavior (retry policy, async executor, Flyway location) flows from standard Spring Boot configuration.
+That's the entire surface area — the starter is intentionally minimal. Most behavior (retry policy, async executor, Flyway location) flows from standard Spring Boot configuration.
 
 ## Disabling at runtime
 
@@ -58,15 +59,17 @@ This is recommended for `api-log` — Virtual Threads are perfect for the "lots 
 
 ### Flyway migration location
 
-By default Flyway looks in `classpath:db/migration` — the starter ships its migration there, so it just works. If you need to override:
+When `api.log.schema.management=flyway`, the starter appends `classpath:db/api-log` to your `spring.flyway.locations`. Your existing entries are preserved:
 
 ```yaml title="application.yml"
 spring:
   flyway:
     locations:
-      - classpath:db/migration   # api-log's migration
-      - classpath:db/my-migrations   # your own
+      - classpath:db/migration       # your own migrations (Spring Boot default)
+      # api-log's classpath:db/api-log is appended automatically by the starter
 ```
+
+You don't need to declare `classpath:db/api-log` yourself. If you do (explicitly), it'll show up twice in the locations list — Flyway is fine with that, but it's noisy. Leave it out and let the customizer handle it.
 
 ### JPA properties
 

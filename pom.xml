@@ -12,7 +12,7 @@
 
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-spring-boot-starter</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>API Log Spring Boot Starter</name>
@@ -95,17 +95,28 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Flyway migration of the api_logs table (consumer can opt out via flyway.locations) -->
+        <!--
+            Flyway is OPTIONAL. The consumer must add it themselves if they want
+            api.log.schema.management=flyway. The starter compiles against the
+            FluentConfiguration class so its FlywayConfigurationCustomizer bean
+            can reference it, but with <optional>true</optional> we don't force
+            Flyway onto consumers' classpaths or transitive dependency graphs.
+
+            When the consumer uses Liquibase, manual DDL, or their own migration
+            flow, this starter stays out of their way.
+        -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
             <version>${flyway.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
             <version>${flyway.version}</version>
             <scope>runtime</scope>
+            <optional>true</optional>
         </dependency>
 
         <!-- Build-time only -->

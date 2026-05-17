@@ -13,11 +13,28 @@ spring:
     username: your_user
     password: your_password
 
-# The bundled RestClient uses this as its base URL
 api:
   log:
     enabled: true
+    schema:
+      management: flyway   # let the starter create the api_log table for this quickstart
+                           # (default is 'none' — you apply the DDL yourself; see Installation)
 ```
+
+!!! note "Flyway required for this quickstart"
+    `schema.management=flyway` needs Flyway on the classpath. Add it:
+    ```xml
+    <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-core</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-database-postgresql</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+    ```
+    Or, for production setups, leave `management: none` and apply [the DDL](../reference/schema.md) via your own migration tool.
 
 !!! tip "Bring your own RestClient"
     If you already have an `org.springframework.web.client.RestClient` bean configured for a specific target, expose it as `@Bean RestClient apiLogRestClient(...)` and `RestApiClientUtil` will pick it up. Otherwise the default uses Spring's `RestClient.create()`.

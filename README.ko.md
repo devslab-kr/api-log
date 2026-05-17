@@ -165,7 +165,7 @@ CompletableFuture<ApiResponse> future = restApiClient.postAsync("/api/users", us
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-spring-boot-starter</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -222,11 +222,26 @@ spring:
   threads:
     virtual:
       enabled: true   # 권장 (Java 21+)
+
+api:
+  log:
+    enabled: true              # 기본값 — false면 전체 인프라 비활성화
+    schema:
+      management: none         # 기본값 — 아래 "스키마 관리" 참고
 ```
 
 - **PostgreSQL DataSource** (JSONB 컬럼 사용 위해 필수)
 - **ObjectMapper** Bean (Spring Boot 기본 구성으로 충분)
-- 스타터에 포함된 Flyway 마이그레이션 `V1.0__create_api_log.sql`이 자동 적용됨
+- `api_log` 테이블 생성 방법 — DDL을 직접 적용하거나, 번들 Flyway 마이그레이션을 옵트인
+
+### 스키마 관리 (v0.2.0 변경)
+
+`api_log` 테이블은 **자동으로 생성되지 않습니다.** 두 가지 옵션:
+
+1. **DDL 직접 적용** (기본값, 운영 권장) — [스키마 레퍼런스](https://api-log.devslab.kr/ko/reference/schema/) 참고. 본인 Flyway/Liquibase/수동 흐름에 SQL을 넣으세요.
+2. **번들 마이그레이션 옵트인** — Flyway 의존성 추가 + `api.log.schema.management=flyway`. 스타터가 `spring.flyway.locations`에 `classpath:db/api-log` 추가.
+
+전체 설치 가이드: [api-log.devslab.kr/ko/getting-started/installation](https://api-log.devslab.kr/ko/getting-started/installation/).
 
 ## 🧪 테스트
 

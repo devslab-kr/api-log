@@ -1,6 +1,8 @@
 # Schema
 
-The starter ships a single table: `api_log`. The Flyway migration `V1.0__create_api_log.sql` creates it the first time your app starts.
+The starter ships a single table: `api_log`. As of v0.2.0, **the table is not created automatically by default** — see [`api.log.schema.management`](configuration.md#properties) and [Installation / Schema management](../getting-started/installation.md#schema-management) for the two ways to provision it (apply the DDL yourself, or opt in to the bundled Flyway migration).
+
+The SQL below is the exact contents of `V1.0__create_api_log.sql` shipped at `classpath:db/api-log/V1.0__create_api_log.sql` inside the JAR — you can copy it verbatim into your own migrations or apply it directly with `psql`.
 
 ## Table definition
 

@@ -14,7 +14,7 @@
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-spring-boot-starter</artifactId>
-        <version>0.1.0</version>
+        <version>0.2.0</version>
     </dependency>
     ```
 
@@ -22,7 +22,7 @@
 
     ```kotlin
     dependencies {
-        implementation("kr.devslab:api-log-spring-boot-starter:0.1.0")
+        implementation("kr.devslab:api-log-spring-boot-starter:0.2.0")
     }
     ```
 
@@ -30,12 +30,12 @@
 
     ```groovy
     dependencies {
-        implementation 'kr.devslab:api-log-spring-boot-starter:0.1.0'
+        implementation 'kr.devslab:api-log-spring-boot-starter:0.2.0'
     }
     ```
 
-!!! note "Pre-release"
-    Until 0.1.0 hits Maven Central, use the `0.1.0-SNAPSHOT` from Sonatype OSSRH or build from source: `./mvnw install`.
+!!! tip "Latest version"
+    Replace `0.2.0` with the latest from [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-spring-boot-starter).
 
 ## What the starter pulls in
 
@@ -45,13 +45,37 @@ The starter brings these for you transitively:
 - `spring-boot-starter-web` (the bundled `RestApiClientUtil`)
 - `spring-retry` (retry-aware logging)
 - `jackson-module-blackbird` (high-throughput JSON serialization)
-- `flyway-core` + `flyway-database-postgresql` (auto-applies the `api_log` schema)
 - `postgresql` JDBC driver (runtime)
+
+!!! info "Flyway is optional (as of v0.2.0)"
+    Flyway is no longer a transitive dependency. If you want the bundled migration to run automatically (see [Schema management](#schema-management) below), add it yourself:
+
+    === "Maven"
+
+        ```xml
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        ```
+
+    === "Gradle (Kotlin DSL)"
+
+        ```kotlin
+        implementation("org.flywaydb:flyway-core")
+        runtimeOnly("org.flywaydb:flyway-database-postgresql")
+        ```
 
 ## What you bring yourself
 
 - A **PostgreSQL `DataSource`** — the starter doesn't configure database connection details for you
 - An **`ObjectMapper` bean** — Spring Boot's auto-configured one is sufficient
+- A way to create the `api_log` table — either apply the DDL yourself, or opt in to the bundled Flyway migration (see below)
 
 ```yaml title="application.yml"
 spring:
@@ -65,7 +89,9 @@ spring:
 
 api:
   log:
-    enabled: true   # default — set to false to disable the listener at runtime
+    enabled: true              # default — false disables the whole infrastructure
+    schema:
+      management: none         # default — see "Schema management" below
 ```
 
 ## What auto-configuration does
@@ -79,23 +105,45 @@ When the starter is on the classpath and `api.log.enabled` is `true` (the defaul
 
 All beans use `@ConditionalOnMissingBean`. Define your own to override.
 
-## Schema
+## Schema management { #schema-management }
 
-The bundled Flyway migration `V1.0__create_api_log.sql` creates the `api_log` table and its indexes the first time your app starts. If you use Flyway in your project, it will pick this up automatically — see [Reference / Schema](../reference/schema.md) for the columns.
+The `api_log` table is **not** created automatically. You choose how it's provisioned via `api.log.schema.management`:
+
+=== "NONE (default) — apply DDL yourself"
+
+    Take the [Schema reference](../reference/schema.md) SQL and put it in:
+
+    - your own Flyway migration, or
+    - your own Liquibase changelog, or
+    - a manual `psql` run during deployment, or
+    - whatever schema flow you already have
+
+    This is the **default** because most production teams already manage migrations and don't want a third-party library reaching into their schema.
+
+=== "FLYWAY — let the starter manage it"
+
+    Add Flyway to your dependencies (see above), then:
+
+    ```yaml title="application.yml"
+    api:
+      log:
+        schema:
+          management: flyway
+    ```
+
+    The starter registers a `FlywayConfigurationCustomizer` that appends `classpath:db/api-log` to your existing `spring.flyway.locations`. Your own migrations continue to run alongside ours — no collision, no conflict.
+
+    The bundled migration `V1.0__create_api_log.sql` creates the `api_log` table and the indexes on `request_id` and `timestamp`.
 
 ## Verifying the install
 
-After adding the dependency and configuring your `DataSource`, start your application. You should see Flyway apply the migration:
+After adding the dependency and starting your app, two things confirm the install:
 
-```text
-o.f.c.i.command.DbMigrate : Migrating schema "public" to version "1.0 - create api log"
-o.f.c.i.command.DbMigrate : Successfully applied 1 migration to schema "public"
-```
-
-And the `api_log` table now exists:
-
-```sql
-\d api_log
-```
+1. **The auto-configuration loads**. With `--debug` you'll see `ApiLogAutoConfiguration matched`.
+2. **The `api_log` table exists** — either because you applied the DDL manually, or because Flyway logged:
+    ```text
+    o.f.c.i.command.DbMigrate : Migrating schema "public" to version "1.0 - create api log"
+    o.f.c.i.command.DbMigrate : Successfully applied 1 migration to schema "public"
+    ```
 
 Continue to the [Quickstart](quickstart.md) to make your first logged call.

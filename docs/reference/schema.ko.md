@@ -1,6 +1,8 @@
 # 스키마
 
-스타터는 테이블 하나를 만듭니다: `api_log`. Flyway 마이그레이션 `V1.0__create_api_log.sql`이 앱 첫 실행 시 생성합니다.
+스타터는 테이블 하나를 사용합니다: `api_log`. v0.2.0부터 **테이블은 기본적으로 자동 생성되지 않습니다** — [`api.log.schema.management`](configuration.md#_2) 와 [설치 / 스키마 관리](../getting-started/installation.md#schema-management) 참고 (DDL 직접 적용 vs 번들 Flyway 옵트인).
+
+아래 SQL은 JAR 내부 `classpath:db/api-log/V1.0__create_api_log.sql`의 내용 그대로입니다 — 본인 마이그레이션에 복사해 넣거나 `psql`로 직접 적용 가능합니다.
 
 ## 테이블 정의
 
