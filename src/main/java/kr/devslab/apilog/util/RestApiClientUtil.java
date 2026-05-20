@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.util.concurrent.CompletableFuture;
@@ -18,6 +17,11 @@ import java.util.concurrent.CompletableFuture;
 /**
  * HTTP client wrapper that emits {@link ApiCallInitiatedEvent} / {@link ApiCallSuccessEvent} /
  * {@link ApiCallErrorEvent} around every call so they end up in {@code api_log}.
+ *
+ * <p>Registered as a bean by
+ * {@link kr.devslab.apilog.autoconfigure.RestApiClientAutoConfiguration} when
+ * {@link RestClient} is on the classpath — no {@code @Component} so consumers
+ * don't have to {@code @ComponentScan} the {@code kr.devslab.apilog} package.
  *
  * <p>Two layers of API:
  * <ul>
@@ -32,7 +36,6 @@ import java.util.concurrent.CompletableFuture;
  *
  * <p>All paths funnel through the core methods, so behavior is uniform across HTTP verbs.
  */
-@Component
 public class RestApiClientUtil {
 
     private final RestClient restClient;

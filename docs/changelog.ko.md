@@ -6,6 +6,37 @@
 
 ## [Unreleased]
 
+## [0.5.2] — 실제 consumer 앱에서 빈 등록 문제 픽스
+
+### Fixed
+
+- **`RestApiClientUtil`, `AsyncConfig`, `JacksonConfig`, `RestClientConfig`가 실제 consumer 앱에서 등록되지 않던 버그.** Consumer의 `@ComponentScan`이 `kr.devslab.apilog` 패키지까지 닿아야 했는데, base package가 다른 앱들은 안 닿음. 스타터 테스트만 통과한 이유: `TestApp`이 패키지 루트에 있어서 전체 스캔. 실제 사용 시:
+    - `@Autowired RestApiClientUtil` → `NoSuchBeanDefinitionException`
+    - Blackbird `ObjectMapper`가 없었음 — Spring Boot 기본값 사용
+    - 커스텀 async executor가 없었음 — Spring Boot 기본값 사용
+    - 타임아웃·메시지 컨버터 설정된 `RestClient`가 없었음
+- 픽스: `ApiLogAutoConfiguration`을 3개의 `@AutoConfiguration`으로 분리, `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` (Spring Boot 3 discovery)에 다 등록:
+    - `ApiLogAutoConfiguration` — 코어 (이벤트 리스너, 서비스, 스키마 초기화, async executor, Blackbird `ObjectMapper`, retry config)
+    - `RestApiClientAutoConfiguration` — 블로킹 HTTP, `@ConditionalOnClass(RestClient.class)` 게이트 (`RestClient`, `MappingJackson2HttpMessageConverter`, `ClientHttpRequestFactory`, `RestApiClientUtil` 등록)
+    - `ReactiveApiClientAutoConfiguration` — 리액티브 HTTP, `@ConditionalOnClass(WebClient.class)` 게이트 (자동 구성된 `WebClient.Builder`에서 `ReactiveApiClientUtil` 등록)
+- `RestApiClientUtil`에서 `@Component` 제거. Auto-config의 `@Bean` (`@ConditionalOnMissingBean`)이 등록.
+
+### Changed
+
+- **`spring-boot-starter-web`가 `<optional>true</optional>`로 변경.** 순수 WebFlux 앱에 Servlet 스택을 강제로 들이지 않음. 블로킹 `RestApiClientUtil`을 쓰는 사용자는 직접 `spring-boot-starter-web` (또는 `spring-web`) 추가 — 대부분의 Servlet 앱은 이미 갖고 있음.
+- Spring 자체 옵셔널 통합과 같은 패턴이고, easy-paging-spring-boot-starter의 compileOnly 접근과 일치.
+
+### Removed (내부 정리)
+
+- `RestClientConfig`가 우연히 노출하던 미사용 `RestTemplate` 빈. `RestClient` (Spring 6+ 권장) 또는 본인이 직접 선언.
+- 독립 `AsyncConfig.java` / `JacksonConfig.java` / `RestClientConfig.java` 파일. 내용이 auto-config들로 이동.
+
+### v0.5.1에서 마이그레이션
+
+- (망가진) `@ComponentScan`에 의존하고 있었다면 — 사실 `RestApiClientUtil`을 제대로 못 받고 있었던 것. 빌드 resolve되면 이제 정상 등장.
+- 순수 WebFlux 앱이고 블로킹 클라이언트 안 썼다면, optional 변경으로 Tomcat 등이 더 이상 transitive로 안 옴. 깔끔.
+- 조용히 `RestTemplate` 빈에 의존하고 있었다면 — 본인이 직접 선언; 더 이상 등록 안 됨.
+
 ## [0.5.1] — 리액티브 (WebFlux) 클라이언트 + end-to-end HTTP 테스트
 
 ### Added
@@ -145,7 +176,8 @@ v0.1.0의 자동 마이그레이션에 의존하고 있었다면:
 - `ApiLogAutoConfiguration`을 통한 자동 구성, `@ConditionalOnMissingBean` 오버라이드.
 - 서비스·리포지토리·리스너·Testcontainers 기반 PostgreSQL 통합까지 포괄적 테스트.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.2
 [0.5.1]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.1
 [0.5.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.0
 [0.4.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.4.0

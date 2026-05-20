@@ -6,6 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [0.5.2] — Fix bean registration in real consumer apps
+
+### Fixed
+
+- **`RestApiClientUtil`, `AsyncConfig`, `JacksonConfig`, `RestClientConfig` were never registered in consumer apps.** They relied on the consumer's `@ComponentScan` reaching the `kr.devslab.apilog` package, which it doesn't for apps with a different base package. The starter's tests passed only because the test's `TestApp` sat at the package root and scanned everything. In real usage:
+    - `@Autowired RestApiClientUtil` would throw `NoSuchBeanDefinitionException`
+    - The Blackbird-equipped `ObjectMapper` was missing — Spring Boot's default was used
+    - The custom async executor was missing — Spring Boot's default was used
+    - `RestClient` with the configured timeouts and message converters was missing
+- Fix: split `ApiLogAutoConfiguration` into three `@AutoConfiguration` classes, register all in `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` (Spring Boot 3 discovery):
+    - `ApiLogAutoConfiguration` — core (event listener, service, schema initializer, async executor, `ObjectMapper` with Blackbird, retry config)
+    - `RestApiClientAutoConfiguration` — blocking HTTP, gated by `@ConditionalOnClass(RestClient.class)` (registers `RestClient`, `MappingJackson2HttpMessageConverter`, `ClientHttpRequestFactory`, `RestApiClientUtil`)
+    - `ReactiveApiClientAutoConfiguration` — reactive HTTP, gated by `@ConditionalOnClass(WebClient.class)` (registers `ReactiveApiClientUtil` from the auto-configured `WebClient.Builder`)
+- `RestApiClientUtil` is no longer annotated `@Component`. The auto-config's `@Bean` (with `@ConditionalOnMissingBean`) registers it.
+
+### Changed
+
+- **`spring-boot-starter-web` is now `<optional>true</optional>`.** Pure-WebFlux apps no longer get a Servlet stack forced onto their classpath. Consumers who want the blocking `RestApiClientUtil` add `spring-boot-starter-web` (or just `spring-web`) themselves — most Servlet apps already have it.
+- Same pattern Spring's own optional integrations follow, and matches easy-paging-spring-boot-starter's compileOnly approach.
+
+### Removed (internal cleanup)
+
+- The unused `RestTemplate` bean that `RestClientConfig` accidentally exposed. Use `RestClient` (Spring 6+ recommended) or declare your own.
+- Stand-alone `AsyncConfig.java` / `JacksonConfig.java` / `RestClientConfig.java` files. Their content moved into the auto-configurations.
+
+### Migration from v0.5.1
+
+- If you depended on the (broken) `@ComponentScan` working — you weren't really getting `RestApiClientUtil`. Now it'll appear once your build resolves successfully.
+- If you have a pure WebFlux app and weren't using the blocking client, the optional `spring-boot-starter-web` change means Tomcat etc. no longer ship transitively. Cleaner.
+- If you were quietly relying on the `RestTemplate` bean — declare your own; it's no longer registered.
+
 ## [0.5.1] — Reactive (WebFlux) client + end-to-end HTTP tests
 
 ### Added
@@ -145,7 +176,8 @@ First public release. Repackaged as a standalone Spring Boot starter.
 - Auto-configuration via `ApiLogAutoConfiguration` with `@ConditionalOnMissingBean` overrides.
 - comprehensive test suite covering services, repository, listener, and Testcontainers-backed PostgreSQL integration.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.2
 [0.5.1]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.1
 [0.5.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.0
 [0.4.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.4.0
