@@ -78,14 +78,14 @@ PostgreSQL  (api_log · JSONB columns)
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-spring-boot-starter</artifactId>
-    <version>0.5.0</version>
+    <version>0.5.1</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```kotlin
-implementation("kr.devslab:api-log-spring-boot-starter:0.5.0")
+implementation("kr.devslab:api-log-spring-boot-starter:0.5.1")
 ```
 
 ## 설정

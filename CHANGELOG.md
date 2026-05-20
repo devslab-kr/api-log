@@ -64,7 +64,8 @@ See [docs/changelog.md](docs/changelog.md#020--schema-management-opt-in) for the
 
 First public release. See [docs/changelog.md](docs/changelog.md#010--initial-release) for details.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.1
 [0.5.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.0
 [0.4.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.4.0
 [0.3.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.3.0
