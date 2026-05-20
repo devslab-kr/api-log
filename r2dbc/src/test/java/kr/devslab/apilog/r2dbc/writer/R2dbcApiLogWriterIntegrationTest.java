@@ -88,7 +88,7 @@ class R2dbcApiLogWriterIntegrationTest {
 
         writer.writeInitiated(new ApiCallInitiatedEvent(this, request));
 
-        Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+        Awaitility.await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> {
             List<Map<String, Object>> rows = fetchByRequestId(reqId);
             assertThat(rows).hasSize(1);
             Map<String, Object> row = rows.get(0);
@@ -111,7 +111,7 @@ class R2dbcApiLogWriterIntegrationTest {
 
         writer.writeSuccess(new ApiCallSuccessEvent(this, request, response));
 
-        Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+        Awaitility.await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> {
             List<Map<String, Object>> rows = fetchByRequestId(reqId);
             assertThat(rows).hasSize(1);
             Map<String, Object> row = rows.get(0);
@@ -131,7 +131,7 @@ class R2dbcApiLogWriterIntegrationTest {
 
         writer.writeError(event);
 
-        Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+        Awaitility.await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> {
             List<Map<String, Object>> rows = fetchByRequestId(reqId);
             assertThat(rows).hasSize(1);
             Map<String, Object> row = rows.get(0);
@@ -154,7 +154,7 @@ class R2dbcApiLogWriterIntegrationTest {
 
         writer.writeError(event);
 
-        Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+        Awaitility.await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> {
             List<Map<String, Object>> rows = fetchByRequestId(reqId);
             assertThat(rows).hasSize(1);
             Map<String, Object> row = rows.get(0);

@@ -10,8 +10,6 @@ import kr.devslab.apilog.spi.HttpErrorExtractor;
 import kr.devslab.apilog.spi.HttpErrorInfo;
 import kr.devslab.apilog.spi.PayloadJsonMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -38,7 +36,14 @@ public class MybatisApiLogWriter implements ApiLogWriter {
     private final PayloadJsonMapper jsonMapper;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    // @Transactional(REQUIRES_NEW) intentionally removed in this commit to
+    // confirm CI hypothesis: the previous run inserted nothing, suggesting
+    // the wrapping transaction wasn't committing. With it gone, mybatis-spring
+    // runs the mapper call under SpringManagedTransaction in no-tx mode, which
+    // means the JDBC connection's auto-commit is used and each insert is
+    // visible immediately. If this turns the four mybatis integration tests
+    // green, the transaction wiring is what's broken and a follow-up commit
+    // will reinstate REQUIRES_NEW with the actual fix.
     public void writeInitiated(ApiCallInitiatedEvent event) {
         ApiLogRow row = ApiLogRow.builder()
                 .eventType(INITIATED)
@@ -53,7 +58,14 @@ public class MybatisApiLogWriter implements ApiLogWriter {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    // @Transactional(REQUIRES_NEW) intentionally removed in this commit to
+    // confirm CI hypothesis: the previous run inserted nothing, suggesting
+    // the wrapping transaction wasn't committing. With it gone, mybatis-spring
+    // runs the mapper call under SpringManagedTransaction in no-tx mode, which
+    // means the JDBC connection's auto-commit is used and each insert is
+    // visible immediately. If this turns the four mybatis integration tests
+    // green, the transaction wiring is what's broken and a follow-up commit
+    // will reinstate REQUIRES_NEW with the actual fix.
     public void writeSuccess(ApiCallSuccessEvent event) {
         ApiLogRow row = ApiLogRow.builder()
                 .eventType(SUCCESS)
@@ -70,7 +82,14 @@ public class MybatisApiLogWriter implements ApiLogWriter {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    // @Transactional(REQUIRES_NEW) intentionally removed in this commit to
+    // confirm CI hypothesis: the previous run inserted nothing, suggesting
+    // the wrapping transaction wasn't committing. With it gone, mybatis-spring
+    // runs the mapper call under SpringManagedTransaction in no-tx mode, which
+    // means the JDBC connection's auto-commit is used and each insert is
+    // visible immediately. If this turns the four mybatis integration tests
+    // green, the transaction wiring is what's broken and a follow-up commit
+    // will reinstate REQUIRES_NEW with the actual fix.
     public void writeError(ApiCallErrorEvent event) {
         Throwable error = event.getError();
         HttpErrorInfo info = HttpErrorExtractor.extract(error);
