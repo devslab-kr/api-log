@@ -37,13 +37,6 @@ jobs:
         id: ver
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
-      # TEMPORARY diag: confirms whether SIGNING_KEY_ID was actually shortened
-      # to 8 chars in the org-level secret store.
-      - name: Diag — SIGNING_KEY_ID length
-        env:
-          KID: ${{ secrets.SIGNING_KEY_ID }}
-        run: echo "SIGNING_KEY_ID length is ${#KID}"
-
       - name: Build and test
         run: ./gradlew build --no-configuration-cache --stacktrace -PVERSION=${{ steps.ver.outputs.version }}
 
@@ -54,9 +47,15 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           # ASCII-armored private key (`gpg --armor --export-secret-keys <key-id>`)
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+          # SIGNING_KEY_ID is currently the 16-char long key ID, but Gradle's
+          # PgpKeyId.normaliseKeyId() only accepts the 8-char short form.
+          # Trim to the last 8 hex chars here so the secret can keep its
+          # canonical long-form value and we don't need to keep nagging
+          # whoever maintains the org secrets to shorten it.
+          SIGNING_KEY_ID_RAW: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
+          export ORG_GRADLE_PROJECT_signingInMemoryKeyId="${SIGNING_KEY_ID_RAW: -8}"
           ./gradlew publishAndReleaseToMavenCentral \
             --no-configuration-cache \
             --stacktrace \
