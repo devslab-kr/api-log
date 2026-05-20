@@ -72,6 +72,7 @@ plugins:
             Quickstart: 빠른 시작
             Guides: 가이드
             Using RestApiClient: RestApiClient 사용하기
+            Reactive (WebFlux): 리액티브 (WebFlux)
             Publishing Events: 이벤트 직접 발행
             Retry Handling: 재시도 처리
             Querying Logs: 로그 조회
@@ -132,6 +133,7 @@ nav:
       - Quickstart: getting-started/quickstart.md
   - Guides:
       - Using RestApiClient: guides/using-restapiclient.md
+      - Reactive (WebFlux): guides/reactive.md
       - Publishing Events: guides/publishing-events.md
       - Retry Handling: guides/retry-handling.md
       - Querying Logs: guides/querying-logs.md

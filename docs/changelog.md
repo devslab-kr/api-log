@@ -6,10 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
-## [0.5.0] — PUT / DELETE / PATCH + retry-correlation via core API
+## [0.5.0] — Reactive client, full HTTP-verb coverage, end-to-end HTTP tests
 
 ### Added
 
+- **`ReactiveApiClientUtil`** — `WebClient`-backed reactive client. Same method surface as `RestApiClientUtil` (all 5 verbs × raw / typed + `send()` / `sendTyped()` cores) but returns `Mono<ApiResponse>` / `Mono<T>`. Same event-publishing contract, same `api_log` rows. Auto-registered via `ReactiveApiClientConfig` when `spring-webflux` is on the classpath. See the new [Reactive guide](guides/reactive.md).
 - **PUT / DELETE / PATCH convenience methods on `RestApiClientUtil`** — 12 new methods following the existing GET/POST patterns: `putSync`, `putSyncTyped`, `putAsync`, `putAsyncTyped`, `deleteSync`, `deleteSyncTyped`, `deleteAsync`, `deleteAsyncTyped`, `patchSync`, `patchSyncTyped`, `patchAsync`, `patchAsyncTyped` (each with the appropriate `String` / typed-body / typed-response overloads).
 - **Core `send` / `sendAsync` / `sendTyped` / `sendAsyncTyped` API** taking `(HttpMethod, ApiRequest)` directly. Lets callers supply an explicit `requestId` so retry attempts share a correlation key — fills the gap documented in the v0.4.0 retry-handling guide.
 
@@ -19,11 +20,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ### Tests
 
-- New `RestApiClientUtilRoutingTest` verifies each verb method routes through the correct `HttpMethod` and that `send(HttpMethod, ApiRequest)` respects a caller-provided `requestId`.
+- **`RestApiClientUtilHttpIntegrationTest`** and **`ReactiveApiClientUtilHttpIntegrationTest`** — end-to-end coverage with `MockWebServer` + Testcontainers PostgreSQL. Real HTTP traffic through both clients, real DB inserts via the async listener, then assertions on the `api_log` rows. Closes the gap where v0.4.0's hardcoded-status / unstructured-error_message bugs could ship undetected.
+- **`RestApiClientUtilRoutingTest`** + **`ReactiveApiClientUtilRoutingTest`** — fast unit tests verifying each verb method routes through the correct `HttpMethod` and that `send(HttpMethod, ApiRequest)` respects a caller-provided `requestId`.
+
+### Dependency notes
+
+- `spring-webflux` and `reactor-netty-http` declared `<optional>true</optional>` — consumers who don't want the reactive client pay nothing (no bean registered, no transitive dep).
+- Test scope: `com.squareup.okhttp3:mockwebserver` 4.12.0 (HTTP integration), `io.projectreactor:reactor-test` (StepVerifier).
 
 ### Migration from v0.4.0
 
-Fully backward-compatible — all v0.4.0 method signatures and behaviors are preserved. The new methods are additive.
+Fully backward-compatible — all v0.4.0 method signatures and behaviors are preserved. The reactive client and new verbs are additive. To use the reactive client, add `spring-webflux` + `reactor-netty-http` to your dependencies.
 
 ## [0.4.0] — Bug fixes: real status codes, structured errors, honest retry docs
 

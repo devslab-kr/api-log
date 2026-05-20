@@ -7,18 +7,20 @@ The source of truth for the entries below is [docs/changelog.md](docs/changelog.
 
 ## [Unreleased]
 
-## [0.5.0] — PUT / DELETE / PATCH + retry-correlation via core API
+## [0.5.0] — Reactive client, full HTTP-verb coverage, end-to-end HTTP tests
 
 ### Added
 
-- **PUT / DELETE / PATCH** convenience methods on `RestApiClientUtil` (12 new methods, mirror the GET/POST shape).
+- **`ReactiveApiClientUtil`** — `WebClient`-backed reactive client, returns `Mono<ApiResponse>` / `Mono<T>`. Same API shape as `RestApiClientUtil`. Auto-registered when `spring-webflux` is on the classpath (declared optional).
+- **PUT / DELETE / PATCH** convenience methods on `RestApiClientUtil` (12 new methods).
 - **Core `send` / `sendAsync` / `sendTyped` / `sendAsyncTyped`** API taking `(HttpMethod, ApiRequest)` directly. Lets callers supply an explicit `requestId` so retry attempts share a correlation key.
+- **MockWebServer + Testcontainers HTTP integration tests** for both clients — real HTTP, real DB, real assertions on `api_log`.
 
 ### Changed
 
 - Internal refactor: all 22 convenience methods on `RestApiClientUtil` now funnel through the four core `send*` methods. Public API unchanged, behavior identical to v0.4.0.
 
-Fully backward-compatible with v0.4.0. Full notes in [docs/changelog.md](docs/changelog.md#050--put--delete--patch--retry-correlation-via-core-api).
+Fully backward-compatible with v0.4.0. Full notes in [docs/changelog.md](docs/changelog.md#050--reactive-client-full-http-verb-coverage-end-to-end-http-tests).
 
 ## [0.4.0] — Bug fixes: real status codes, structured errors, honest retry docs
 

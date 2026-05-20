@@ -47,6 +47,8 @@
 
 Flyway는 **옵셔널** — `api.log.schema.management=flyway`로 설정할 때만 필요합니다 (아래 [스키마 관리](#schema-management) 참고). 기본값(BUILTIN)은 Flyway 불필요.
 
+Spring WebFlux도 **옵셔널** — 리액티브 `ReactiveApiClientUtil` (`Mono<ApiResponse>` / `Mono<T>` 반환)을 사용하려면 `spring-webflux` + `reactor-netty-http`를 의존성에 추가. 그러면 스타터가 리액티브 클라이언트를 블로킹과 함께 자동 등록. [리액티브 가이드](../guides/reactive.md) 참고.
+
 ## 직접 제공해야 하는 것
 
 - **PostgreSQL `DataSource`** — 스타터가 DB 접속 정보를 만들어주지는 않습니다

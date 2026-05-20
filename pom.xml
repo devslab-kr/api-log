@@ -82,6 +82,24 @@
             <artifactId>spring-retry</artifactId>
         </dependency>
 
+        <!--
+            WebFlux is OPTIONAL. The consumer adds spring-webflux themselves when
+            they want the reactive ReactiveApiClientUtil (WebClient wrapper).
+            The starter compiles against WebClient so its conditional auto-config
+            can reference it, but consumers without WebFlux on their classpath
+            simply don't get ReactiveApiClientUtil registered — no runtime cost.
+        -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty-http</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Jackson Blackbird: high-throughput JSON for the JSONB payloads -->
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
@@ -161,6 +179,25 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            MockWebServer — backs the end-to-end HTTP integration tests
+            (we drive real HTTP through RestApiClientUtil and ReactiveApiClientUtil
+            and then assert the rows in PostgreSQL via Testcontainers).
+        -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <version>4.12.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Reactor StepVerifier for reactive tests -->
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -24,7 +24,7 @@ import javax.sql.DataSource;
 @ConditionalOnProperty(name = "api.log.enabled", havingValue = "true", matchIfMissing = true)
 @EntityScan(basePackages = "kr.devslab.apilog.model")
 @EnableJpaRepositories(basePackages = "kr.devslab.apilog.repository")
-@Import({RetryConfig.class, ApiLogFlywayConfig.class})
+@Import({RetryConfig.class, ApiLogFlywayConfig.class, ReactiveApiClientConfig.class})
 public class ApiLogAutoConfiguration {
 
     @Bean

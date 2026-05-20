@@ -6,10 +6,11 @@
 
 ## [Unreleased]
 
-## [0.5.0] — PUT / DELETE / PATCH + 코어 API로 재시도 correlation
+## [0.5.0] — 리액티브 클라이언트, 전체 HTTP verb 커버리지, end-to-end HTTP 테스트
 
 ### Added
 
+- **`ReactiveApiClientUtil`** — `WebClient` 기반 리액티브 클라이언트. `RestApiClientUtil`과 동일한 메서드 표면 (5개 verb × raw / typed + `send()` / `sendTyped()` 코어)이지만 `Mono<ApiResponse>` / `Mono<T>` 반환. 동일한 이벤트 발행 계약, 동일한 `api_log` 행. `spring-webflux`가 클래스패스에 있을 때 `ReactiveApiClientConfig`가 자동 등록. 새 [리액티브 가이드](guides/reactive.md) 참고.
 - **`RestApiClientUtil`에 PUT / DELETE / PATCH 편의 메서드** — 기존 GET/POST 패턴을 따르는 12개 신규 메서드: `putSync`, `putSyncTyped`, `putAsync`, `putAsyncTyped`, `deleteSync`, `deleteSyncTyped`, `deleteAsync`, `deleteAsyncTyped`, `patchSync`, `patchSyncTyped`, `patchAsync`, `patchAsyncTyped` (각각 `String` / 타입 바디 / 타입 응답 오버로드 적절히).
 - **코어 `send` / `sendAsync` / `sendTyped` / `sendAsyncTyped` API** — `(HttpMethod, ApiRequest)`를 직접 받음. 호출자가 명시적 `requestId`를 전달해 재시도 시도들이 correlation 키를 공유 — v0.4.0 재시도 가이드에서 지적한 갭을 채움.
 
@@ -19,11 +20,17 @@
 
 ### Tests
 
-- 새 `RestApiClientUtilRoutingTest` — 각 동사 메서드가 올바른 `HttpMethod`로 라우팅되고 `send(HttpMethod, ApiRequest)`가 호출자 제공 `requestId`를 존중하는지 검증.
+- **`RestApiClientUtilHttpIntegrationTest`** + **`ReactiveApiClientUtilHttpIntegrationTest`** — `MockWebServer` + Testcontainers PostgreSQL로 end-to-end 커버리지. 양쪽 클라이언트로 실제 HTTP 트래픽, 비동기 리스너로 실제 DB INSERT, 그 다음 `api_log` 행에 대한 단언. v0.4.0의 하드코딩 status / 비구조화 error_message 같은 버그가 다시 슬쩍 들어와도 잡힘.
+- **`RestApiClientUtilRoutingTest`** + **`ReactiveApiClientUtilRoutingTest`** — 각 verb 메서드가 올바른 `HttpMethod`로 라우팅되고 `send(HttpMethod, ApiRequest)`가 호출자 제공 `requestId`를 존중하는지 빠르게 검증.
+
+### 의존성 노트
+
+- `spring-webflux`와 `reactor-netty-http`는 `<optional>true</optional>` 선언 — 리액티브 클라이언트 안 쓰는 사용자는 무비용 (빈 등록도, transitive 의존성도 없음).
+- test scope: `com.squareup.okhttp3:mockwebserver` 4.12.0 (HTTP 통합), `io.projectreactor:reactor-test` (StepVerifier).
 
 ### v0.4.0에서 마이그레이션
 
-완전히 하위 호환 — v0.4.0의 모든 메서드 시그니처와 동작 보존. 새 메서드는 추가만.
+완전히 하위 호환 — v0.4.0의 모든 메서드 시그니처와 동작 보존. 리액티브 클라이언트와 새 verb는 추가만. 리액티브 클라이언트를 쓰려면 `spring-webflux` + `reactor-netty-http`를 본인 의존성에 추가.
 
 ## [0.4.0] — 버그 픽스: 실제 상태 코드, 구조화된 에러, 정직해진 재시도 문서
 

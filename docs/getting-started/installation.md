@@ -49,6 +49,8 @@ The starter brings these for you transitively:
 
 Flyway is **optional** — only needed if you set `api.log.schema.management=flyway` (see [Schema management](#schema-management) below). The default doesn't need it.
 
+Spring WebFlux is also **optional** — only needed if you want the reactive `ReactiveApiClientUtil` (returns `Mono<ApiResponse>` / `Mono<T>`). Add `spring-webflux` + `reactor-netty-http` to your dependencies and the starter auto-registers the reactive client alongside the blocking one. See the [Reactive guide](../guides/reactive.md).
+
 ## What you bring yourself
 
 - A **PostgreSQL `DataSource`** — the starter doesn't configure database connection details for you
