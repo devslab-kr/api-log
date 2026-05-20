@@ -7,11 +7,11 @@ import kr.devslab.apilog.spi.PayloadJsonMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -31,11 +31,18 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  *
  * <p>The actual {@link ApiLogWriter} bean comes from whichever backend module
  * the consumer added — {@code api-log-jpa}, {@code api-log-r2dbc}, or
- * {@code api-log-mybatis}. {@link ApiEventListener} is gated on
- * {@code @ConditionalOnBean(ApiLogWriter.class)} so missing-backend setups
- * fail loudly at config time rather than at first event.
+ * {@code api-log-mybatis}. {@link ApiEventListener} just declares
+ * {@code ApiLogWriter} as a constructor parameter so Spring DI resolves the
+ * backend writer lazily; if no backend is on the classpath, the context fails
+ * fast at startup with a clear {@code NoSuchBeanDefinitionException}.
+ *
+ * <p>{@code after = JacksonAutoConfiguration.class} guarantees Spring Boot's
+ * {@code ObjectMapper} is registered before this class is evaluated, so the
+ * {@code PayloadJsonMapper} bean can take it as a parameter without timing
+ * games. Backend auto-configs declare {@code after = ApiLogCoreAutoConfiguration.class}
+ * to chain the ordering further.
  */
-@AutoConfiguration
+@AutoConfiguration(after = JacksonAutoConfiguration.class)
 @ConditionalOnClass({ApiEventListener.class, ApiLogWriter.class})
 @EnableConfigurationProperties(ApiLogProperties.class)
 @ConditionalOnProperty(name = "api.log.enabled", havingValue = "true", matchIfMissing = true)
@@ -46,24 +53,26 @@ public class ApiLogCoreAutoConfiguration {
     /**
      * Shared JSON helper used by every backend writer. Lifted out of the old
      * {@code ApiLogService} so backend modules don't each re-implement it.
+     *
+     * <p>{@code ObjectMapper} comes from Spring Boot's
+     * {@code JacksonAutoConfiguration} (we run after it via the
+     * {@code @AutoConfiguration(after = ...)} hint on the class).
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean(ObjectMapper.class)
     public PayloadJsonMapper apiLogPayloadJsonMapper(ObjectMapper objectMapper) {
         return new PayloadJsonMapper(objectMapper);
     }
 
     /**
      * Event-bus listener that routes events to the consumer's chosen
-     * {@link ApiLogWriter}. Only registered when a writer bean is present —
-     * makes "consumer added api-log-core but forgot to add a backend" a clear
-     * "no qualifying bean of type ApiLogWriter" failure instead of silently
-     * dropping events.
+     * {@link ApiLogWriter}. Spring DI resolves the writer lazily — if no
+     * backend artifact is present the application context fails fast at
+     * startup with {@code NoSuchBeanDefinitionException}, which is more
+     * actionable than silently dropping events.
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean(ApiLogWriter.class)
     public ApiEventListener apiEventListener(ApiLogWriter writer) {
         return new ApiEventListener(writer);
     }

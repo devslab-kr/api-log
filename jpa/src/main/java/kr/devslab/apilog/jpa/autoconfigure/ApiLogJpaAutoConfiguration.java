@@ -7,7 +7,6 @@ import kr.devslab.apilog.jpa.writer.JpaApiLogWriter;
 import kr.devslab.apilog.spi.ApiLogWriter;
 import kr.devslab.apilog.spi.PayloadJsonMapper;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -46,9 +45,17 @@ import javax.sql.DataSource;
 @Import(ApiLogFlywayConfig.class)
 public class ApiLogJpaAutoConfiguration {
 
+    /**
+     * Wire the JPA writer as the {@link ApiLogWriter} implementation. Spring
+     * DI resolves {@link ApiLogRepository} (registered by
+     * {@code @EnableJpaRepositories} above) and {@link PayloadJsonMapper}
+     * (from {@code ApiLogCoreAutoConfiguration}) lazily — no
+     * {@code @ConditionalOnBean} guards needed here, and removing them avoids
+     * the "same-class @Bean evaluated before its own siblings are registered"
+     * pitfall that bit v0.6.0's first CI run.
+     */
     @Bean
     @ConditionalOnMissingBean(ApiLogWriter.class)
-    @ConditionalOnBean({ApiLogRepository.class, PayloadJsonMapper.class})
     public JpaApiLogWriter jpaApiLogWriter(ApiLogRepository repository, PayloadJsonMapper jsonMapper) {
         return new JpaApiLogWriter(repository, jsonMapper);
     }

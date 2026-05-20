@@ -6,10 +6,10 @@ import kr.devslab.apilog.spi.ApiLogWriter;
 import kr.devslab.apilog.spi.PayloadJsonMapper;
 import io.r2dbc.spi.ConnectionFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.r2dbc.core.DatabaseClient;
 
@@ -39,7 +39,7 @@ import org.springframework.r2dbc.core.DatabaseClient;
  *       backend.</li>
  * </ul>
  */
-@AutoConfiguration(after = ApiLogCoreAutoConfiguration.class)
+@AutoConfiguration(after = {ApiLogCoreAutoConfiguration.class, R2dbcAutoConfiguration.class})
 @ConditionalOnClass(ConnectionFactory.class)
 @ConditionalOnProperty(name = "api.log.enabled", havingValue = "true", matchIfMissing = true)
 public class ApiLogR2dbcAutoConfiguration {
@@ -48,24 +48,31 @@ public class ApiLogR2dbcAutoConfiguration {
      * Lazily-built {@link DatabaseClient}. Skipped if the consumer (or
      * Spring Boot's reactive autoconfig) already registered one — most
      * R2DBC apps will already have it via {@code spring-boot-starter-data-r2dbc}.
+     * {@link ConnectionFactory} is supplied via constructor injection; we sit
+     * {@code after = R2dbcAutoConfiguration.class} so Spring Boot's auto-built
+     * one is in place by the time this method is invoked.
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean(ConnectionFactory.class)
     public DatabaseClient apiLogR2dbcDatabaseClient(ConnectionFactory connectionFactory) {
         return DatabaseClient.create(connectionFactory);
     }
 
+    /**
+     * Wire the R2DBC writer as the {@link ApiLogWriter} implementation. No
+     * {@code @ConditionalOnBean} guards on {@link DatabaseClient} /
+     * {@link PayloadJsonMapper} — those would race against the same class's
+     * own {@code @Bean} declarations (a Spring Boot pitfall). Spring DI
+     * resolves the parameters lazily, which avoids the ordering problem.
+     */
     @Bean
     @ConditionalOnMissingBean(ApiLogWriter.class)
-    @ConditionalOnBean({DatabaseClient.class, PayloadJsonMapper.class})
     public R2dbcApiLogWriter r2dbcApiLogWriter(DatabaseClient databaseClient, PayloadJsonMapper jsonMapper) {
         return new R2dbcApiLogWriter(databaseClient, jsonMapper);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean(ConnectionFactory.class)
     @ConditionalOnProperty(
             prefix = "api.log.schema",
             name = "management",

@@ -6,8 +6,8 @@ import kr.devslab.apilog.mybatis.writer.MybatisApiLogWriter;
 import kr.devslab.apilog.spi.ApiLogWriter;
 import kr.devslab.apilog.spi.PayloadJsonMapper;
 import org.mybatis.spring.annotation.MapperScan;
+import org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -41,15 +41,22 @@ import javax.sql.DataSource;
  * directly — Spring Boot's stock Flyway autoconfig will pick up
  * {@code classpath:db/api-log} when added to their {@code spring.flyway.locations}.
  */
-@AutoConfiguration(after = ApiLogCoreAutoConfiguration.class)
+@AutoConfiguration(after = {ApiLogCoreAutoConfiguration.class, MybatisAutoConfiguration.class})
 @ConditionalOnClass(org.apache.ibatis.session.SqlSessionFactory.class)
 @ConditionalOnProperty(name = "api.log.enabled", havingValue = "true", matchIfMissing = true)
 @MapperScan(basePackageClasses = ApiLogMapper.class)
 public class ApiLogMybatisAutoConfiguration {
 
+    /**
+     * Wire the MyBatis writer as the {@link ApiLogWriter} implementation.
+     * Spring DI resolves {@link ApiLogMapper} (registered via the
+     * {@code @MapperScan} above) and {@link PayloadJsonMapper} (from
+     * {@code ApiLogCoreAutoConfiguration}) lazily — no
+     * {@code @ConditionalOnBean} guards, since those evaluate before the
+     * sibling beans are registered and were what bit the first CI run.
+     */
     @Bean
     @ConditionalOnMissingBean(ApiLogWriter.class)
-    @ConditionalOnBean({ApiLogMapper.class, PayloadJsonMapper.class})
     public MybatisApiLogWriter mybatisApiLogWriter(ApiLogMapper mapper, PayloadJsonMapper jsonMapper) {
         return new MybatisApiLogWriter(mapper, jsonMapper);
     }
