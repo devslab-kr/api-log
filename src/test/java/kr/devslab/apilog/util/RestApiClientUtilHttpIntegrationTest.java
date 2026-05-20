@@ -242,7 +242,8 @@ class RestApiClientUtilHttpIntegrationTest {
 
     @Test
     void send_withCustomRequestId_correlatesAttemptsForRetryTimeline() {
-        String correlationId = "retry-" + UUID.randomUUID();
+        // VARCHAR(36) limits us to UUID-sized correlation keys. Plain UUID is 36 chars.
+        String correlationId = UUID.randomUUID().toString();
 
         // Simulate the "fail twice then succeed" retry pattern.
         mockServer.enqueue(new MockResponse().setResponseCode(503));

@@ -189,7 +189,8 @@ class ReactiveApiClientUtilHttpIntegrationTest {
 
     @Test
     void send_withCustomRequestId_correlatesAttemptsForRetryTimeline() {
-        String correlationId = "rx-retry-" + UUID.randomUUID();
+        // VARCHAR(36) limits us to UUID-sized correlation keys. Plain UUID is 36 chars.
+        String correlationId = UUID.randomUUID().toString();
         mockServer.enqueue(new MockResponse().setResponseCode(503));
         mockServer.enqueue(new MockResponse().setResponseCode(200).setBody("{\"ok\":true}"));
 
