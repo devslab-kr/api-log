@@ -16,3 +16,28 @@ allprojects {
     group = providers.gradleProperty("GROUP").get()
     version = providers.gradleProperty("VERSION").get()
 }
+
+// Subproject publications all rely on the Spring Boot BOM via the dependency-management
+// plugin, so individual `api(...)` / `implementation(...)` declarations have no
+// explicit version. When Gradle generates each module's `.module` metadata it
+// validates that every dep carries a coordinate-level version and aborts the
+// publication if any are missing -- which is exactly the BOM case.
+//
+// `versionMapping { allVariants { fromResolutionResult() } }` tells Gradle to
+// freeze the version Gradle actually resolved (3.5.6 from the Spring Boot BOM)
+// into the published metadata, so the resulting POM and .module files carry
+// concrete versions Maven consumers can use without our BOM. Applied via
+// `subprojects` so the four backend modules all pick it up uniformly.
+subprojects {
+    pluginManager.withPlugin("maven-publish") {
+        extensions.configure<org.gradle.api.publish.PublishingExtension>("publishing") {
+            publications.withType<org.gradle.api.publish.maven.MavenPublication>().configureEach {
+                versionMapping {
+                    allVariants {
+                        fromResolutionResult()
+                    }
+                }
+            }
+        }
+    }
+}
