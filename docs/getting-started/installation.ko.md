@@ -8,13 +8,38 @@
 
 ## 의존성 추가
 
+v0.6.0부터 스타터가 백엔드 비종속 코어 + 영속화 백엔드 1개로 분리됐습니다.
+**아래 표에서 한 줄만 고르면 됩니다 — 해당 백엔드 아티팩트가
+`api-log-core`를 transitive하게 가져옵니다.**
+
+| 환경 | 추가할 좌표 |
+| --- | --- |
+| Spring MVC + JPA (v0.5.x 기본) | `kr.devslab:api-log-jpa` |
+| WebFlux + R2DBC (end-to-end 리액티브) | `kr.devslab:api-log-r2dbc` |
+| MyBatis (어떤 웹 스택이든) | `kr.devslab:api-log-mybatis` |
+
 === "Maven"
 
     ```xml
+    <!-- JPA 백엔드 — v0.5.x 드롭인 -->
     <dependency>
         <groupId>kr.devslab</groupId>
-        <artifactId>api-log-spring-boot-starter</artifactId>
-        <version>0.3.0</version>
+        <artifactId>api-log-jpa</artifactId>
+        <version>0.6.0</version>
+    </dependency>
+
+    <!-- 또는 리액티브 앱에서 -->
+    <dependency>
+        <groupId>kr.devslab</groupId>
+        <artifactId>api-log-r2dbc</artifactId>
+        <version>0.6.0</version>
+    </dependency>
+
+    <!-- 또는 MyBatis -->
+    <dependency>
+        <groupId>kr.devslab</groupId>
+        <artifactId>api-log-mybatis</artifactId>
+        <version>0.6.0</version>
     </dependency>
     ```
 
@@ -22,7 +47,10 @@
 
     ```kotlin
     dependencies {
-        implementation("kr.devslab:api-log-spring-boot-starter:0.3.0")
+        // JPA — v0.5.x 드롭인
+        implementation("kr.devslab:api-log-jpa:0.6.0")
+        // 또는 "kr.devslab:api-log-r2dbc:0.6.0"
+        // 또는 "kr.devslab:api-log-mybatis:0.6.0"
     }
     ```
 
@@ -30,24 +58,49 @@
 
     ```groovy
     dependencies {
-        implementation 'kr.devslab:api-log-spring-boot-starter:0.3.0'
+        implementation 'kr.devslab:api-log-jpa:0.6.0'
+        // 또는 'kr.devslab:api-log-r2dbc:0.6.0'
+        // 또는 'kr.devslab:api-log-mybatis:0.6.0'
     }
     ```
 
 !!! tip "최신 버전"
-    `0.3.0`은 [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-spring-boot-starter)의 최신 버전으로 교체.
+    `0.6.0`은 [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-core)의 최신 버전으로 교체.
 
-## 스타터가 자동으로 가져오는 의존성
+!!! info "v0.5.x에서 업그레이드?"
+    기존 `api-log-spring-boot-starter` 좌표를 `api-log-jpa`로 바꾸면 됩니다
+    (동일 JPA 백엔드, 동일 `api_log` 행). 일부 패키지 이름이 바뀌었으니
+    [v0.6.0 변경 이력](../changelog.md#060--멀티모듈-분리-gradle-jpa--r2dbc--mybatis-백엔드-선택-지원)에서
+    매핑 표 참고.
+
+## 각 아티팩트가 가져오는 의존성
+
+**`api-log-core`** (백엔드 아티팩트가 자동으로 가져옴):
+
+- `spring-boot-starter` (`@EventListener`, `@EnableAsync`, `ApplicationEventPublisher`)
+- `spring-retry` + `spring-boot-starter-aop` (리스너의 `@Retryable` 로그 쓰기 재시도)
+- `jackson-databind` + `jackson-module-blackbird` (JSONB 페이로드 직렬화)
+- `spring-web` / `spring-webflux` (compile-only — HTTP 유틸이 참조하지만, 사용자 classpath에 실제로 있어야 활성화)
+
+**`api-log-jpa`** 추가:
 
 - `spring-boot-starter-data-jpa` (`ApiLogRepository`)
-- `spring-boot-starter-web` (내장 `RestApiClientUtil`)
-- `spring-retry` (`ApiEventListener`가 로그 쓰기 실패 시 3회까지 재시도)
-- `jackson-module-blackbird` (고성능 JSON 직렬화)
 - `postgresql` JDBC 드라이버 (runtime)
+- `flyway-core` (compile-only — `api.log.schema.management=flyway`일 때만 활성화)
 
-Flyway는 **옵셔널** — `api.log.schema.management=flyway`로 설정할 때만 필요합니다 (아래 [스키마 관리](#schema-management) 참고). 기본값(BUILTIN)은 Flyway 불필요.
+**`api-log-r2dbc`** 추가:
 
-Spring WebFlux도 **옵셔널** — 리액티브 `ReactiveApiClientUtil` (`Mono<ApiResponse>` / `Mono<T>` 반환)을 사용하려면 `spring-webflux` + `reactor-netty-http`를 의존성에 추가. 그러면 스타터가 리액티브 클라이언트를 블로킹과 함께 자동 등록. [리액티브 가이드](../guides/reactive.md) 참고.
+- `spring-r2dbc` (`DatabaseClient`)
+- `r2dbc-postgresql` (runtime)
+- `reactor-core`
+
+JDBC 드라이버 없음 — 순수 리액티브.
+
+**`api-log-mybatis`** 추가:
+
+- `mybatis-spring-boot-starter:3.0.4`
+- `spring-jdbc`
+- `postgresql` JDBC 드라이버 (runtime)
 
 ## 직접 제공해야 하는 것
 
@@ -76,13 +129,25 @@ api:
 
 ## 자동 구성이 하는 일
 
-스타터가 클래스패스에 있고 `api.log.enabled`가 `true`(기본값)이면 `ApiLogAutoConfiguration`이 활성화되어 다음을 등록합니다:
+`api.log.enabled`가 `true`(기본값)이면 `api-log-core`에서 3개의 auto-config가
+활성화되고, 선택한 백엔드에서 1개가 추가로 활성화됩니다.
 
-- `ApiLogService` — 영속화 오케스트레이터 (`ObjectMapper` 빈이 있어야 활성화)
-- `ApiEventListener` — 이벤트를 서비스로 연결하는 `@EventListener` (async)
+**`api-log-core`에서** (`ApiLogCoreAutoConfiguration`,
+`RestApiClientAutoConfiguration`, `ReactiveApiClientAutoConfiguration`):
+
+- `ApiEventListener` — 이벤트를 등록된 `ApiLogWriter`로 연결하는 `@EventListener`
+- `PayloadJsonMapper` — 모든 writer가 공유하는 JSON 헬퍼
 - `RetryConfig` — `@EnableRetry` 활성화 (리스너의 로그 쓰기 `@Retryable` 동작용)
-- `ApiLogSchemaInitializer` — 부팅 시 `CREATE TABLE IF NOT EXISTS` 실행 (`schema.management=builtin` 활성화 시, 즉 기본값)
-- JPA `@EntityScan` 및 `@EnableJpaRepositories` (`kr.devslab.apilog.model`, `kr.devslab.apilog.repository`)
+- `apiLogJacksonCustomizer` — Spring Boot 기본 `ObjectMapper`에 Blackbird 추가
+- `apiLogVirtualThreadExecutor` / `apiLogPlatformThreadExecutor` — 리스너용 async executor (Virtual Threads 활성화 시 virtual)
+- `RestApiClientUtil` (classpath에 `RestClient`가 있을 때)
+- `ReactiveApiClientUtil` (classpath에 `WebClient`가 있을 때)
+
+**선택한 백엔드 아티팩트에서**:
+
+- `ApiLogWriter` 구현체 — 추가한 아티팩트에 따라 `JpaApiLogWriter` / `R2dbcApiLogWriter` / `MybatisApiLogWriter`
+- 스키마 초기화 (BUILTIN 모드) — `:jpa` + `:mybatis`는 JDBC 기반, `:r2dbc`는 순수 리액티브
+- JPA `@EntityScan` + `@EnableJpaRepositories` (`:jpa`만) 또는 `@MapperScan` (`:mybatis`만)
 
 모든 빈은 `@ConditionalOnMissingBean`. 직접 빈을 정의하면 오버라이드됩니다.
 

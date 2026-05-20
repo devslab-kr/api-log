@@ -6,6 +6,77 @@
 
 ## [Unreleased]
 
+## [0.6.0] — 멀티모듈 분리 (Gradle), JPA / R2DBC / MyBatis 백엔드 선택 지원
+
+### Changed
+
+- **단일 `api-log-spring-boot-starter` 아티팩트가 분리됐습니다.** 이제는 멀티모듈 Gradle 빌드입니다. 사용자는 `api-log-core` + 백엔드 1개를 직접 골라 추가:
+
+  | 아티팩트 (Maven 좌표) | 역할 |
+  | --- | --- |
+  | `kr.devslab:api-log-core` | 이벤트, SPI, async 리스너, HTTP 클라이언트 유틸 |
+  | `kr.devslab:api-log-jpa` | JPA + Hibernate 영속화 (v0.5.x 동작 그대로) |
+  | `kr.devslab:api-log-r2dbc` | 리액티브 R2DBC 영속화 — JDBC 의존성 없음 |
+  | `kr.devslab:api-log-mybatis` | MyBatis mapper 영속화 |
+
+  v0.5.x에서 가장 비슷한 드롭인은 `api-log-jpa`입니다 (자동으로 `api-log-core`를 가져옴).
+
+- **빌드 시스템: Maven → Gradle 8.10**. easy-paging 컨벤션 적용 — 모듈마다 Vanniktech maven-publish, CI에서는 publish 플러그인의 property-driven 설정과 충돌하지 않도록 configuration cache 비활성화. Maven 파일은 사라졌고, `./gradlew build`가 유일한 빌드 경로입니다.
+
+- **패키지 이름 변경** (구조 정리 차원):
+  - `kr.devslab.apilog.model.dto.ApiRequest` → `kr.devslab.apilog.dto.ApiRequest`
+  - `kr.devslab.apilog.model.dto.ApiResponse` → `kr.devslab.apilog.dto.ApiResponse`
+  - `kr.devslab.apilog.model.ApiLogEntity` → `kr.devslab.apilog.jpa.model.ApiLogEntity` (`api-log-jpa`로 이동)
+  - `kr.devslab.apilog.repository.ApiLogRepository` → `kr.devslab.apilog.jpa.repository.ApiLogRepository`
+  - `kr.devslab.apilog.service.ApiLogService` → `kr.devslab.apilog.jpa.writer.JpaApiLogWriter`로 대체 (새 `ApiLogWriter` SPI 구현)
+
+### Added
+
+- **`ApiLogWriter` SPI** (`kr.devslab.apilog.spi.ApiLogWriter`) — 모든 백엔드가 구현하는 3-메서드 인터페이스 (`writeInitiated`, `writeSuccess`, `writeError`). 코어 리스너는 사용자가 추가한 백엔드 아티팩트가 등록한 writer 빈으로 이벤트를 라우팅합니다.
+- **`api-log-r2dbc`** — R2DBC의 `DatabaseClient`로 PostgreSQL과 통신하는 리액티브 백엔드. JSONB 바인딩은 R2DBC PostgreSQL 드라이버의 묵시적 `TEXT → JSONB` 캐스트를 활용, 별도의 `::jsonb` 작업이 필요 없음. 순수 리액티브 스키마 초기화 (`R2dbcScriptDatabaseInitializer`) 제공 — JDBC 끌어들이지 않음.
+- **`api-log-mybatis`** — `@Mapper` 인터페이스 기반 MyBatis 백엔드. JSONB 컬럼은 `CAST(#{...,jdbcType=VARCHAR} AS jsonb)` 구문으로 처리해서 별도의 `TypeHandler`가 필요 없음.
+- **`:core`에서 공유하는 SPI 헬퍼**:
+  - `HttpErrorExtractor` — 던져진 예외에서 HTTP 상태 / 본문 추출 (기존 `ApiLogService` 내부 로직 분리).
+  - `PayloadJsonMapper` — 모든 writer가 사용하는 JSON 문자열 / `JsonNode` 변환.
+
+### Fixed
+
+- **`V1.0__create_api_log.sql`이 이제 멱등합니다.** `CREATE TABLE`과 `CREATE INDEX` 둘 다 `IF NOT EXISTS` 추가. 기존에는 BUILTIN 모드에서 두 번째 부팅 시 "relation already exists" 에러가 발생할 수 있었음 (Hibernate `ddl-auto`가 잡아주지 않으면).
+
+### v0.5.2에서 마이그레이션
+
+의존성 좌표 변경:
+
+```xml
+<!-- v0.5.x -->
+<dependency>
+    <groupId>kr.devslab</groupId>
+    <artifactId>api-log-spring-boot-starter</artifactId>
+    <version>0.5.2</version>
+</dependency>
+
+<!-- v0.6.0 — JPA 백엔드 (기존 사용자에게 가장 가까운 드롭인) -->
+<dependency>
+    <groupId>kr.devslab</groupId>
+    <artifactId>api-log-jpa</artifactId>
+    <version>0.6.0</version>
+</dependency>
+```
+
+이동된 타입을 직접 import 하던 경우 패키지 업데이트:
+
+```java
+// Before
+import kr.devslab.apilog.model.dto.ApiRequest;
+import kr.devslab.apilog.model.ApiLogEntity;
+
+// After
+import kr.devslab.apilog.dto.ApiRequest;
+import kr.devslab.apilog.jpa.model.ApiLogEntity;
+```
+
+리액티브 (R2DBC) 또는 MyBatis로 전환하려는 경우: `api-log-jpa` 대신 `api-log-r2dbc` / `api-log-mybatis`만 바꿔 끼우면 됩니다 — 동일한 `ApiLogWriter` 계약, 동일한 `api_log` 테이블.
+
 ## [0.5.2] — 실제 consumer 앱에서 빈 등록 문제 픽스
 
 ### Fixed

@@ -1,0 +1,3 @@
+kr.devslab.apilog.autoconfigure.ApiLogCoreAutoConfiguration
+kr.devslab.apilog.autoconfigure.RestApiClientAutoConfiguration
+kr.devslab.apilog.autoconfigure.ReactiveApiClientAutoConfiguration

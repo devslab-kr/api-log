@@ -71,6 +71,10 @@ plugins:
             Installation: 설치
             Quickstart: 빠른 시작
             Guides: 가이드
+            Backends: 백엔드
+            JPA Backend: JPA 백엔드
+            R2DBC Backend: R2DBC 백엔드
+            MyBatis Backend: MyBatis 백엔드
             Using RestApiClient: RestApiClient 사용하기
             Reactive (WebFlux): 리액티브 (WebFlux)
             Publishing Events: 이벤트 직접 발행
@@ -132,6 +136,10 @@ nav:
       - Installation: getting-started/installation.md
       - Quickstart: getting-started/quickstart.md
   - Guides:
+      - Backends:
+          - JPA Backend: guides/jpa-backend.md
+          - R2DBC Backend: guides/r2dbc-backend.md
+          - MyBatis Backend: guides/mybatis-backend.md
       - Using RestApiClient: guides/using-restapiclient.md
       - Reactive (WebFlux): guides/reactive.md
       - Publishing Events: guides/publishing-events.md
