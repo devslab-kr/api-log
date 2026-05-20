@@ -10,6 +10,7 @@ import kr.devslab.apilog.spi.HttpErrorExtractor;
 import kr.devslab.apilog.spi.HttpErrorInfo;
 import kr.devslab.apilog.spi.PayloadJsonMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +30,7 @@ import static kr.devslab.apilog.Constants.SUCCESS;
  * ({@code CAST(#{...,jdbcType=VARCHAR} AS jsonb)}), so this class just builds
  * an {@link ApiLogRow} with string-typed JSON and hands it off.
  */
+@Slf4j
 @RequiredArgsConstructor
 public class MybatisApiLogWriter implements ApiLogWriter {
 
@@ -54,18 +56,14 @@ public class MybatisApiLogWriter implements ApiLogWriter {
                 .retryCount(0)
                 .isRetry(false)
                 .build();
+        log.info("MyBatis insert INITIATED: requestId={}, endpoint={}",
+                row.getRequestId(), row.getEndpoint());
         mapper.insert(row);
+        log.info("MyBatis insert INITIATED done: requestId={}, id={}",
+                row.getRequestId(), row.getId());
     }
 
     @Override
-    // @Transactional(REQUIRES_NEW) intentionally removed in this commit to
-    // confirm CI hypothesis: the previous run inserted nothing, suggesting
-    // the wrapping transaction wasn't committing. With it gone, mybatis-spring
-    // runs the mapper call under SpringManagedTransaction in no-tx mode, which
-    // means the JDBC connection's auto-commit is used and each insert is
-    // visible immediately. If this turns the four mybatis integration tests
-    // green, the transaction wiring is what's broken and a follow-up commit
-    // will reinstate REQUIRES_NEW with the actual fix.
     public void writeSuccess(ApiCallSuccessEvent event) {
         ApiLogRow row = ApiLogRow.builder()
                 .eventType(SUCCESS)
@@ -78,18 +76,14 @@ public class MybatisApiLogWriter implements ApiLogWriter {
                 .retryCount(0)
                 .isRetry(false)
                 .build();
+        log.info("MyBatis insert SUCCESS: requestId={}, status={}",
+                row.getRequestId(), row.getStatusCode());
         mapper.insert(row);
+        log.info("MyBatis insert SUCCESS done: requestId={}, id={}",
+                row.getRequestId(), row.getId());
     }
 
     @Override
-    // @Transactional(REQUIRES_NEW) intentionally removed in this commit to
-    // confirm CI hypothesis: the previous run inserted nothing, suggesting
-    // the wrapping transaction wasn't committing. With it gone, mybatis-spring
-    // runs the mapper call under SpringManagedTransaction in no-tx mode, which
-    // means the JDBC connection's auto-commit is used and each insert is
-    // visible immediately. If this turns the four mybatis integration tests
-    // green, the transaction wiring is what's broken and a follow-up commit
-    // will reinstate REQUIRES_NEW with the actual fix.
     public void writeError(ApiCallErrorEvent event) {
         Throwable error = event.getError();
         HttpErrorInfo info = HttpErrorExtractor.extract(error);
@@ -105,6 +99,10 @@ public class MybatisApiLogWriter implements ApiLogWriter {
                 .retryCount(event.getRetryCount())
                 .isRetry(event.isRetry())
                 .build();
+        log.info("MyBatis insert {}: requestId={}, isRetry={}",
+                row.getEventType(), row.getRequestId(), row.getIsRetry());
         mapper.insert(row);
+        log.info("MyBatis insert {} done: requestId={}, id={}",
+                row.getEventType(), row.getRequestId(), row.getId());
     }
 }
