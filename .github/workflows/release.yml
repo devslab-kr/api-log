@@ -37,24 +37,6 @@ jobs:
         id: ver
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
-      # TEMPORARY diagnostic: prints only the *length* of each secret, never the
-      # value. Confirms whether the workflow can actually read the org-level
-      # secrets that show as "Public repositories" visibility for this repo.
-      # Will be removed once publish is green.
-      - name: Diag — secret availability
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-        run: |
-          echo "SIGNING_KEY length: ${#SIGNING_KEY}"
-          echo "SIGNING_KEY_ID length: ${#SIGNING_KEY_ID}"
-          echo "SIGNING_KEY_PASSWORD length: ${#SIGNING_KEY_PASSWORD}"
-          echo "MAVEN_CENTRAL_USERNAME length: ${#MAVEN_CENTRAL_USERNAME}"
-          echo "MAVEN_CENTRAL_PASSWORD length: ${#MAVEN_CENTRAL_PASSWORD}"
-
       - name: Build and test
         run: ./gradlew build --no-configuration-cache --stacktrace -PVERSION=${{ steps.ver.outputs.version }}
 
