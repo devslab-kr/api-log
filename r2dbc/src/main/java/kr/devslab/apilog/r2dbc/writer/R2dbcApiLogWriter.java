@@ -44,13 +44,21 @@ import static kr.devslab.apilog.Constants.SUCCESS;
 @RequiredArgsConstructor
 public class R2dbcApiLogWriter implements ApiLogWriter {
 
+    // PostgreSQL won't implicitly cast TEXT -> JSONB the way I'd hoped --
+    // r2dbc-postgresql binds CLOB params as text and the server rejects the
+    // insert with "column 'payload' is of type jsonb but expression is of
+    // type text". Explicit `::jsonb` on every JSONB column fixes it without
+    // requiring a custom codec or the r2dbc-postgresql Json type.
     private static final String INSERT_SQL = """
             INSERT INTO api_log
                 (event_type, request_id, endpoint, payload, response,
                  status_code, error_message, timestamp, retry_count, is_retry)
             VALUES
-                (:eventType, :requestId, :endpoint, :payload, :response,
-                 :statusCode, :errorMessage, :timestamp, :retryCount, :isRetry)
+                (:eventType, :requestId, :endpoint,
+                 :payload::jsonb, :response::jsonb,
+                 :statusCode,
+                 :errorMessage::jsonb,
+                 :timestamp, :retryCount, :isRetry)
             """;
 
     private final DatabaseClient databaseClient;
