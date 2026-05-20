@@ -114,7 +114,7 @@ tasks.test {
     testLogging {
         events("passed", "skipped", "failed")
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        showStandardStreams = true   // temporary: surface application logs in CI for the v0.6.0 integration-test debugging
+        showStandardStreams = false
     }
     systemProperty("file.encoding", "UTF-8")
     finalizedBy(tasks.jacocoTestReport)

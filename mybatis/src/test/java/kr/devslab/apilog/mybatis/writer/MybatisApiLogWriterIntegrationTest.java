@@ -66,29 +66,7 @@ class MybatisApiLogWriterIntegrationTest {
     @BeforeEach
     void setUp() {
         jdbcTemplate = new JdbcTemplate(dataSource);
-        int deleted = jdbcTemplate.update("DELETE FROM api_log");
-        int remaining = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM api_log", Integer.class);
-        System.out.println("[diag] BeforeEach: DELETE removed=" + deleted + ", remaining=" + remaining);
-    }
-
-    /**
-     * Diagnostic helper: returns the mapper's view of the table AND a
-     * parallel JdbcTemplate view, so the next CI run can tell whether the
-     * mapper is missing rows the raw JDBC sees (mybatis-spring session
-     * isolation) or both views are genuinely empty (commit/visibility issue).
-     */
-    private List<ApiLogRow> diagFindByRequestId(String reqId) {
-        List<ApiLogRow> mapperRows = mapper.findByRequestId(reqId);
-        Integer jdbcCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM api_log WHERE request_id = ?",
-                Integer.class, reqId);
-        Integer jdbcTotal = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM api_log", Integer.class);
-        System.out.println("[diag] reqId=" + reqId
-                + " mapperRows=" + mapperRows.size()
-                + " jdbcRows=" + jdbcCount
-                + " jdbcTotal=" + jdbcTotal);
-        return mapperRows;
+        jdbcTemplate.update("DELETE FROM api_log");
     }
 
     @Test
@@ -110,7 +88,7 @@ class MybatisApiLogWriterIntegrationTest {
 
         writer.writeInitiated(new ApiCallInitiatedEvent(this, request));
 
-        List<ApiLogRow> rows = diagFindByRequestId(reqId);
+        List<ApiLogRow> rows = mapper.findByRequestId(reqId);
         assertThat(rows).hasSize(1);
         ApiLogRow row = rows.get(0);
         assertThat(row.getEventType()).isEqualTo(INITIATED);
@@ -130,7 +108,7 @@ class MybatisApiLogWriterIntegrationTest {
 
         writer.writeSuccess(new ApiCallSuccessEvent(this, request, response));
 
-        List<ApiLogRow> rows = diagFindByRequestId(reqId);
+        List<ApiLogRow> rows = mapper.findByRequestId(reqId);
         assertThat(rows).hasSize(1);
         ApiLogRow row = rows.get(0);
         assertThat(row.getEventType()).isEqualTo(SUCCESS);
@@ -148,7 +126,7 @@ class MybatisApiLogWriterIntegrationTest {
 
         writer.writeError(event);
 
-        List<ApiLogRow> rows = diagFindByRequestId(reqId);
+        List<ApiLogRow> rows = mapper.findByRequestId(reqId);
         assertThat(rows).hasSize(1);
         ApiLogRow row = rows.get(0);
         assertThat(row.getEventType()).isEqualTo(ERROR);
@@ -168,7 +146,7 @@ class MybatisApiLogWriterIntegrationTest {
 
         writer.writeError(event);
 
-        List<ApiLogRow> rows = diagFindByRequestId(reqId);
+        List<ApiLogRow> rows = mapper.findByRequestId(reqId);
         assertThat(rows).hasSize(1);
         ApiLogRow row = rows.get(0);
         assertThat(row.getEventType()).isEqualTo(RETRY_ERROR);

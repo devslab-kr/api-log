@@ -150,18 +150,10 @@ public class R2dbcApiLogWriter implements ApiLogWriter {
         // (without it the chain can starve when the caller hands control
         // straight back to a CPU-bound test loop or a single-core CI runner —
         // which is what bit the v0.6.0 first integration run).
-        //
-        // INFO-level diagnostics (not DEBUG) so the CI run can prove whether
-        // the chain actually emitted. If the row never lands and neither log
-        // line shows up, `.subscribe()` wasn't triggering the chain at all
-        // and we know to look at the subscriber lifecycle.
         spec.fetch()
                 .rowsUpdated()
                 .subscribeOn(Schedulers.boundedElastic())
-                .doOnSubscribe(s -> log.info(
-                        "R2DBC api_log subscribe: requestId={}, eventType={}",
-                        requestId, eventType))
-                .doOnSuccess(rows -> log.info(
+                .doOnSuccess(rows -> log.debug(
                         "R2DBC api_log insert ok: requestId={}, eventType={}, rows={}",
                         requestId, eventType, rows))
                 .doOnError(ex -> log.error(
