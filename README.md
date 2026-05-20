@@ -4,7 +4,7 @@
 
 > Event-driven API call logging for Spring Boot. Async event pipeline with PostgreSQL JSONB storage.
 
-[![Maven Central](https://img.shields.io/maven-central/v/kr.devslab/api-log-spring-boot-starter.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/kr.devslab/api-log-spring-boot-starter)
+[![Maven Central](https://img.shields.io/maven-central/v/kr.devslab/api-log-core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/kr.devslab/api-log-core)
 [![CI](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml/badge.svg)](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/devslab-kr/api-log/branch/master/graph/badge.svg)](https://codecov.io/gh/devslab-kr/api-log)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -57,35 +57,65 @@ Bodies are stored as JSONB, so you can query them with `->`, `->>`, and GIN inde
 ```
 Caller code
    ↓
-RestApiClientUtil  (or your own HTTP client)
+RestApiClientUtil / ReactiveApiClientUtil  (or your own HTTP client)
    ↓ publishEvent
 ApplicationEventPublisher
-   ↓ @EventListener (async)
-ApiEventListener
-   ↓
-ApiLogService
-   ↓
-ApiLogRepository  (JPA)
-   ↓
-PostgreSQL  (api_log · JSONB columns)
+   ↓ @EventListener (virtual threads)
+ApiEventListener  (api-log-core)
+   ↓ ApiLogWriter (SPI)
+   ├─ JpaApiLogWriter      (api-log-jpa)
+   ├─ R2dbcApiLogWriter    (api-log-r2dbc)
+   └─ MybatisApiLogWriter  (api-log-mybatis)
+        ↓
+   PostgreSQL  (api_log · JSONB columns)
 ```
 
 ## Installation
 
+v0.6.0 splits the starter into four artifacts: a backend-agnostic core, plus
+one of three persistence backends. Add **`api-log-core` plus exactly one
+backend** to your build:
+
+| Coordinate | When to use it |
+| --- | --- |
+| `kr.devslab:api-log-jpa` | Servlet / JPA app (the v0.5.x drop-in) |
+| `kr.devslab:api-log-r2dbc` | WebFlux / R2DBC app — no JDBC pull-in |
+| `kr.devslab:api-log-mybatis` | Already on MyBatis, don't want JPA |
+
+Each backend artifact transitively depends on `api-log-core`, so one
+coordinate is enough.
+
 ### Maven
 
 ```xml
+<!-- JPA (most common — drop-in for v0.5.x) -->
 <dependency>
     <groupId>kr.devslab</groupId>
-    <artifactId>api-log-spring-boot-starter</artifactId>
-    <version>0.3.0</version>
+    <artifactId>api-log-jpa</artifactId>
+    <version>0.6.0</version>
+</dependency>
+
+<!-- ...or R2DBC for reactive apps -->
+<dependency>
+    <groupId>kr.devslab</groupId>
+    <artifactId>api-log-r2dbc</artifactId>
+    <version>0.6.0</version>
+</dependency>
+
+<!-- ...or MyBatis -->
+<dependency>
+    <groupId>kr.devslab</groupId>
+    <artifactId>api-log-mybatis</artifactId>
+    <version>0.6.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```kotlin
-implementation("kr.devslab:api-log-spring-boot-starter:0.3.0")
+implementation("kr.devslab:api-log-jpa:0.6.0")
+// or "kr.devslab:api-log-r2dbc:0.6.0"
+// or "kr.devslab:api-log-mybatis:0.6.0"
 ```
 
 ## Configuration

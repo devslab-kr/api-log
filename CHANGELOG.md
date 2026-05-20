@@ -7,6 +7,35 @@ The source of truth for the entries below is [docs/changelog.md](docs/changelog.
 
 ## [Unreleased]
 
+## [0.6.0] — Multi-module split (Gradle), pluggable JPA / R2DBC / MyBatis backends
+
+### Changed
+
+- **The single `api-log-spring-boot-starter` artifact is split.** Consumers now add `kr.devslab:api-log-core` plus exactly one backend artifact: `api-log-jpa` (drop-in for v0.5.x), `api-log-r2dbc` (reactive), or `api-log-mybatis`.
+- **Build system: Maven → Gradle 8.10** with Vanniktech maven-publish per module.
+- **Package renames**: `model.dto` → `dto`, `model.ApiLogEntity` → `jpa.model.ApiLogEntity`, `service.ApiLogService` → `jpa.writer.JpaApiLogWriter`. Full mapping in [docs/changelog.md](docs/changelog.md#060--multi-module-split-gradle-pluggable-jpa--r2dbc--mybatis-backends).
+
+### Added
+
+- **`ApiLogWriter` SPI** — backend-agnostic three-method interface (`writeInitiated` / `writeSuccess` / `writeError`). Each backend artifact registers one implementation; the core listener routes events through it.
+- **`api-log-r2dbc`** — reactive backend using R2DBC's `DatabaseClient`. Pure-reactive schema initializer; no JDBC pull-in.
+- **`api-log-mybatis`** — MyBatis mapper backend with `::jsonb` cast on inserts.
+
+### Fixed
+
+- `V1.0__create_api_log.sql` now uses `IF NOT EXISTS` on both CREATE TABLE and CREATE INDEX — idempotent across boots under BUILTIN mode.
+
+Full migration notes in [docs/changelog.md](docs/changelog.md#060--multi-module-split-gradle-pluggable-jpa--r2dbc--mybatis-backends).
+
+## [0.5.2] — Fix bean registration in real consumer apps
+
+### Fixed
+
+- `RestApiClientUtil` + four `@Configuration` classes were never registered in consumer apps (relied on `@ComponentScan` reaching the starter's package). Fixed by splitting into three `@AutoConfiguration` classes registered via `META-INF/spring/.../AutoConfiguration.imports`.
+- `spring-boot-starter-web` is now `<optional>true</optional>` — pure-WebFlux apps no longer get a Servlet stack forced onto their classpath.
+
+Full notes in [docs/changelog.md](docs/changelog.md#052--fix-bean-registration-in-real-consumer-apps).
+
 ## [0.5.1] — Reactive (WebFlux) client + end-to-end HTTP tests
 
 ### Added
@@ -75,7 +104,9 @@ See [docs/changelog.md](docs/changelog.md#020--schema-management-opt-in) for the
 
 First public release. See [docs/changelog.md](docs/changelog.md#010--initial-release) for details.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.6.0
+[0.5.2]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.2
 [0.5.1]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.1
 [0.5.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.0
 [0.4.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.4.0

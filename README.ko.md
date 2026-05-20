@@ -4,7 +4,7 @@
 
 > Spring Boot용 이벤트 드리븐 API 호출 로깅. 비동기 이벤트 파이프라인 + PostgreSQL JSONB. 요청 경로를 막지 않고 외부 API 호출을 모두 기록합니다.
 
-[![Maven Central](https://img.shields.io/maven-central/v/kr.devslab/api-log-spring-boot-starter.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/kr.devslab/api-log-spring-boot-starter)
+[![Maven Central](https://img.shields.io/maven-central/v/kr.devslab/api-log-core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/kr.devslab/api-log-core)
 [![CI](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml/badge.svg)](https://github.com/devslab-kr/api-log/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/devslab-kr/api-log/branch/master/graph/badge.svg)](https://codecov.io/gh/devslab-kr/api-log)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -57,35 +57,64 @@ public class UserService {
 ```
 Caller code
    ↓
-RestApiClientUtil  (또는 자체 HTTP 클라이언트)
+RestApiClientUtil / ReactiveApiClientUtil  (또는 자체 HTTP 클라이언트)
    ↓ publishEvent
 ApplicationEventPublisher
-   ↓ @EventListener (async)
-ApiEventListener
-   ↓
-ApiLogService
-   ↓
-ApiLogRepository  (JPA)
-   ↓
-PostgreSQL  (api_log · JSONB columns)
+   ↓ @EventListener (virtual threads)
+ApiEventListener  (api-log-core)
+   ↓ ApiLogWriter (SPI)
+   ├─ JpaApiLogWriter      (api-log-jpa)
+   ├─ R2dbcApiLogWriter    (api-log-r2dbc)
+   └─ MybatisApiLogWriter  (api-log-mybatis)
+        ↓
+   PostgreSQL  (api_log · JSONB columns)
 ```
 
 ## 설치
 
+v0.6.0부터 스타터가 4개 아티팩트로 분리됐습니다 — 백엔드 비종속 코어 1개 +
+영속화 백엔드 1개. **`api-log-core` 1개 + 백엔드 1개**를 직접 골라 추가:
+
+| 좌표 | 언제 쓰나 |
+| --- | --- |
+| `kr.devslab:api-log-jpa` | Servlet / JPA 앱 (v0.5.x 드롭인) |
+| `kr.devslab:api-log-r2dbc` | WebFlux / R2DBC 앱 — JDBC 의존성 없음 |
+| `kr.devslab:api-log-mybatis` | 이미 MyBatis를 쓰고, JPA를 원치 않을 때 |
+
+백엔드 아티팩트 각각이 `api-log-core`를 transitive하게 가져오므로
+좌표 하나만 추가하면 됩니다.
+
 ### Maven
 
 ```xml
+<!-- JPA (가장 흔함 — v0.5.x 드롭인) -->
 <dependency>
     <groupId>kr.devslab</groupId>
-    <artifactId>api-log-spring-boot-starter</artifactId>
-    <version>0.5.1</version>
+    <artifactId>api-log-jpa</artifactId>
+    <version>0.6.0</version>
+</dependency>
+
+<!-- 또는 리액티브 앱에서 R2DBC -->
+<dependency>
+    <groupId>kr.devslab</groupId>
+    <artifactId>api-log-r2dbc</artifactId>
+    <version>0.6.0</version>
+</dependency>
+
+<!-- 또는 MyBatis -->
+<dependency>
+    <groupId>kr.devslab</groupId>
+    <artifactId>api-log-mybatis</artifactId>
+    <version>0.6.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```kotlin
-implementation("kr.devslab:api-log-spring-boot-starter:0.5.1")
+implementation("kr.devslab:api-log-jpa:0.6.0")
+// 또는 "kr.devslab:api-log-r2dbc:0.6.0"
+// 또는 "kr.devslab:api-log-mybatis:0.6.0"
 ```
 
 ## 설정

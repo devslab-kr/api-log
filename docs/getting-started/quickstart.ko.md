@@ -28,7 +28,7 @@ spring:
 package com.example.demo;
 
 import kr.devslab.apilog.util.RestApiClientUtil;
-import kr.devslab.apilog.model.dto.ApiResponse;
+import kr.devslab.apilog.dto.ApiResponse;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -75,7 +75,7 @@ public class DemoApplication implements CommandLineRunner {
 앱 실행:
 
 ```bash
-./mvnw spring-boot:run
+./gradlew bootRun
 ```
 
 ## 4. 로그 확인

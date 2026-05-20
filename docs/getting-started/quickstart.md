@@ -28,7 +28,7 @@ That's it — no `api.log.*` config needed for the happy path. The default `sche
 package com.example.demo;
 
 import kr.devslab.apilog.util.RestApiClientUtil;
-import kr.devslab.apilog.model.dto.ApiResponse;
+import kr.devslab.apilog.dto.ApiResponse;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -75,7 +75,7 @@ public class DemoApplication implements CommandLineRunner {
 Start the app:
 
 ```bash
-./mvnw spring-boot:run
+./gradlew bootRun
 ```
 
 ## 4. Inspect the logs

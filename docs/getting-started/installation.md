@@ -8,13 +8,38 @@
 
 ## Adding the dependency
 
+v0.6.0 splits the starter into a backend-agnostic core plus one persistence
+backend per artifact. **Pick one row from the table below — that's it; the
+backend artifact pulls in `api-log-core` transitively.**
+
+| You are using… | Add this artifact |
+| --- | --- |
+| Spring MVC + JPA (the v0.5.x default) | `kr.devslab:api-log-jpa` |
+| WebFlux + R2DBC (reactive end-to-end) | `kr.devslab:api-log-r2dbc` |
+| MyBatis (any web stack) | `kr.devslab:api-log-mybatis` |
+
 === "Maven"
 
     ```xml
+    <!-- JPA backend — drop-in for v0.5.x setups -->
     <dependency>
         <groupId>kr.devslab</groupId>
-        <artifactId>api-log-spring-boot-starter</artifactId>
-        <version>0.3.0</version>
+        <artifactId>api-log-jpa</artifactId>
+        <version>0.6.0</version>
+    </dependency>
+
+    <!-- ...or, for reactive apps -->
+    <dependency>
+        <groupId>kr.devslab</groupId>
+        <artifactId>api-log-r2dbc</artifactId>
+        <version>0.6.0</version>
+    </dependency>
+
+    <!-- ...or, MyBatis -->
+    <dependency>
+        <groupId>kr.devslab</groupId>
+        <artifactId>api-log-mybatis</artifactId>
+        <version>0.6.0</version>
     </dependency>
     ```
 
@@ -22,7 +47,10 @@
 
     ```kotlin
     dependencies {
-        implementation("kr.devslab:api-log-spring-boot-starter:0.3.0")
+        // JPA — drop-in for v0.5.x setups
+        implementation("kr.devslab:api-log-jpa:0.6.0")
+        // or "kr.devslab:api-log-r2dbc:0.6.0"
+        // or "kr.devslab:api-log-mybatis:0.6.0"
     }
     ```
 
@@ -30,26 +58,49 @@
 
     ```groovy
     dependencies {
-        implementation 'kr.devslab:api-log-spring-boot-starter:0.3.0'
+        implementation 'kr.devslab:api-log-jpa:0.6.0'
+        // or 'kr.devslab:api-log-r2dbc:0.6.0'
+        // or 'kr.devslab:api-log-mybatis:0.6.0'
     }
     ```
 
 !!! tip "Latest version"
-    Replace `0.3.0` with the latest from [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-spring-boot-starter).
+    Replace `0.6.0` with the latest from [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-core).
 
-## What the starter pulls in
+!!! info "Upgrading from v0.5.x?"
+    Swap the old `api-log-spring-boot-starter` coordinate for `api-log-jpa`
+    (same JPA backend, same `api_log` rows). A few packages were renamed —
+    see the [v0.6.0 changelog](../changelog.md#060--multi-module-split-gradle-pluggable-jpa--r2dbc--mybatis-backends)
+    for the complete mapping.
 
-The starter brings these for you transitively:
+## What each artifact pulls in
+
+**`api-log-core`** (always — pulled transitively by every backend artifact):
+
+- `spring-boot-starter` (`@EventListener`, `@EnableAsync`, `ApplicationEventPublisher`)
+- `spring-retry` + `spring-boot-starter-aop` (listener `@Retryable` log-write retries)
+- `jackson-databind` + `jackson-module-blackbird` (the JSONB payload serializer)
+- `spring-web` / `spring-webflux` (compile-only — the HTTP utilities reference them but require the consumer's classpath to actually include one or the other)
+
+**`api-log-jpa`** adds:
 
 - `spring-boot-starter-data-jpa` (the `ApiLogRepository`)
-- `spring-boot-starter-web` (the bundled `RestApiClientUtil`)
-- `spring-retry` (lets `ApiEventListener` retry log-write failures 3× before giving up)
-- `jackson-module-blackbird` (high-throughput JSON serialization)
 - `postgresql` JDBC driver (runtime)
+- `flyway-core` (compile-only — only activated when `api.log.schema.management=flyway`)
 
-Flyway is **optional** — only needed if you set `api.log.schema.management=flyway` (see [Schema management](#schema-management) below). The default doesn't need it.
+**`api-log-r2dbc`** adds:
 
-Spring WebFlux is also **optional** — only needed if you want the reactive `ReactiveApiClientUtil` (returns `Mono<ApiResponse>` / `Mono<T>`). Add `spring-webflux` + `reactor-netty-http` to your dependencies and the starter auto-registers the reactive client alongside the blocking one. See the [Reactive guide](../guides/reactive.md).
+- `spring-r2dbc` (`DatabaseClient`)
+- `r2dbc-postgresql` (runtime)
+- `reactor-core`
+
+No JDBC driver — pure reactive.
+
+**`api-log-mybatis`** adds:
+
+- `mybatis-spring-boot-starter:3.0.4`
+- `spring-jdbc`
+- `postgresql` JDBC driver (runtime)
 
 ## What you bring yourself
 
@@ -78,13 +129,25 @@ api:
 
 ## What auto-configuration does
 
-When the starter is on the classpath and `api.log.enabled` is `true` (the default), `ApiLogAutoConfiguration` activates and registers:
+When `api.log.enabled` is `true` (the default), three auto-configurations from
+`api-log-core` activate plus one from whichever backend you picked.
 
-- `ApiLogService` — the persistence orchestrator (gated on an `ObjectMapper` bean)
-- `ApiEventListener` — the `@EventListener` (async) that bridges events to the service
+From **`api-log-core`** (`ApiLogCoreAutoConfiguration`,
+`RestApiClientAutoConfiguration`, `ReactiveApiClientAutoConfiguration`):
+
+- `ApiEventListener` — the `@EventListener` that bridges events to the chosen `ApiLogWriter`
+- `PayloadJsonMapper` — shared JSON helper for every writer
 - `RetryConfig` — enables `@EnableRetry` so the listener's own `@Retryable` log-write retries work
-- `ApiLogSchemaInitializer` — runs `CREATE TABLE IF NOT EXISTS` on startup (active for `schema.management=builtin`, the default)
-- JPA `@EntityScan` and `@EnableJpaRepositories` scoped to `kr.devslab.apilog.model` and `kr.devslab.apilog.repository`
+- `apiLogJacksonCustomizer` — adds Blackbird to Spring Boot's default `ObjectMapper`
+- `apiLogVirtualThreadExecutor` / `apiLogPlatformThreadExecutor` — async executor for the listener (virtual threads when enabled)
+- `RestApiClientUtil` (when `RestClient` is on the classpath)
+- `ReactiveApiClientUtil` (when `WebClient` is on the classpath)
+
+From the **backend artifact**:
+
+- `ApiLogWriter` implementation — `JpaApiLogWriter` / `R2dbcApiLogWriter` / `MybatisApiLogWriter`, depending on which artifact you added
+- Schema initializer (BUILTIN mode) — JDBC-based for `:jpa` + `:mybatis`, pure-reactive for `:r2dbc`
+- JPA `@EntityScan` + `@EnableJpaRepositories` (`:jpa` only) or `@MapperScan` (`:mybatis` only)
 
 All beans use `@ConditionalOnMissingBean`. Define your own to override.
 

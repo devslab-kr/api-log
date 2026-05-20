@@ -16,7 +16,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -26,26 +26,44 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-          cache: maven
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-home-cache-cleanup: true
+          # Configuration cache occasionally trips up the Vanniktech publish
+          # plugin's property-driven configuration — keep CI off it.
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
 
       - name: Build and test
-        run: ./mvnw -B verify
+        # `build` runs compileJava + compileTestJava + test on every subproject.
+        # `jacocoTestReport` is wired in each module's build.gradle.kts but
+        # repeating it here makes the dependency explicit for the next step.
+        run: ./gradlew build jacocoTestReport --no-configuration-cache --stacktrace
 
       - name: Upload coverage to Codecov
         if: success() && github.event_name == 'push'
         uses: codecov/codecov-action@v6
         with:
-          files: ./target/site/jacoco/jacoco.xml
+          # Glob across all subprojects so adding a future module (e.g.
+          # api-log-jdbc) picks up its coverage report without another edit.
+          files: |
+            ./core/build/reports/jacoco/test/jacocoTestReport.xml
+            ./jpa/build/reports/jacoco/test/jacocoTestReport.xml
+            ./r2dbc/build/reports/jacoco/test/jacocoTestReport.xml
+            ./mybatis/build/reports/jacoco/test/jacocoTestReport.xml
           flags: unittests
-          fail_ci_if_error: false   # don't break CI if Codecov upload glitches
-          token: ${{ secrets.CODECOV_TOKEN }}   # optional for public repos
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: test-reports
+          # `**` so any future module's reports are also captured.
           path: |
-            target/surefire-reports/
-            target/failsafe-reports/
+            **/build/reports/tests/
+            **/build/test-results/
+            **/build/reports/jacoco/
           retention-days: 7

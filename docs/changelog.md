@@ -6,6 +6,77 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [0.6.0] — Multi-module split (Gradle), pluggable JPA / R2DBC / MyBatis backends
+
+### Changed
+
+- **The single `api-log-spring-boot-starter` artifact is gone.** The starter is now a multi-module Gradle build. Consumers add `api-log-core` plus exactly one backend artifact:
+
+  | Artifact (Maven coordinate) | What it provides |
+  | --- | --- |
+  | `kr.devslab:api-log-core` | Events, SPI, async listener, HTTP client utilities |
+  | `kr.devslab:api-log-jpa` | JPA + Hibernate persistence (the v0.5.x behavior) |
+  | `kr.devslab:api-log-r2dbc` | Reactive R2DBC persistence — no JDBC dependency |
+  | `kr.devslab:api-log-mybatis` | MyBatis mapper persistence |
+
+  Adding `api-log-jpa` is the closest drop-in for v0.5.x users; it pulls `api-log-core` transitively.
+
+- **Build system: Maven → Gradle 8.10.** Adopting easy-paging's convention: Vanniktech maven-publish per module, configuration cache disabled in CI to play nice with the publishing plugin. The Maven build files are gone — `./gradlew build` is the only path now.
+
+- **Package renames** to reflect the layout:
+  - `kr.devslab.apilog.model.dto.ApiRequest` → `kr.devslab.apilog.dto.ApiRequest`
+  - `kr.devslab.apilog.model.dto.ApiResponse` → `kr.devslab.apilog.dto.ApiResponse`
+  - `kr.devslab.apilog.model.ApiLogEntity` → `kr.devslab.apilog.jpa.model.ApiLogEntity` (now lives in `api-log-jpa`)
+  - `kr.devslab.apilog.repository.ApiLogRepository` → `kr.devslab.apilog.jpa.repository.ApiLogRepository`
+  - `kr.devslab.apilog.service.ApiLogService` → replaced by `kr.devslab.apilog.jpa.writer.JpaApiLogWriter` (implements the new `ApiLogWriter` SPI)
+
+### Added
+
+- **`ApiLogWriter` SPI** (`kr.devslab.apilog.spi.ApiLogWriter`) — three-method interface that every backend implements (`writeInitiated`, `writeSuccess`, `writeError`). The core listener routes events through whatever writer bean the consumer's backend artifact registered.
+- **`api-log-r2dbc`** — reactive backend that talks to PostgreSQL via R2DBC's `DatabaseClient`. JSONB binding uses the R2DBC PostgreSQL driver's implicit `TEXT → JSONB` cast, no manual `::jsonb` needed. Ships a pure-reactive schema initializer (`R2dbcScriptDatabaseInitializer`) — zero JDBC pull-in.
+- **`api-log-mybatis`** — MyBatis backend with a `@Mapper`-annotated interface. JSONB columns use `CAST(#{...,jdbcType=VARCHAR} AS jsonb)` in the `@Insert` SQL so no custom `TypeHandler` is required.
+- **Shared SPI helpers in `:core`**:
+  - `HttpErrorExtractor` — pulls HTTP status + body off thrown exceptions (was inline in the old `ApiLogService`).
+  - `PayloadJsonMapper` — JSON string / `JsonNode` conversion used by every writer.
+
+### Fixed
+
+- **`V1.0__create_api_log.sql` is now idempotent.** Both `CREATE TABLE` and `CREATE INDEX` got `IF NOT EXISTS`. Previously the second boot under BUILTIN mode could fail with "relation already exists" if Hibernate's `ddl-auto` wasn't catching it.
+
+### Migration from v0.5.2
+
+Update your dependency coordinates:
+
+```xml
+<!-- v0.5.x -->
+<dependency>
+    <groupId>kr.devslab</groupId>
+    <artifactId>api-log-spring-boot-starter</artifactId>
+    <version>0.5.2</version>
+</dependency>
+
+<!-- v0.6.0 — JPA backend (drop-in for existing setups) -->
+<dependency>
+    <groupId>kr.devslab</groupId>
+    <artifactId>api-log-jpa</artifactId>
+    <version>0.6.0</version>
+</dependency>
+```
+
+If you import any of the moved types directly, update the package:
+
+```java
+// Before
+import kr.devslab.apilog.model.dto.ApiRequest;
+import kr.devslab.apilog.model.ApiLogEntity;
+
+// After
+import kr.devslab.apilog.dto.ApiRequest;
+import kr.devslab.apilog.jpa.model.ApiLogEntity;
+```
+
+Reactive (R2DBC) or MyBatis adopters: swap `api-log-jpa` for `api-log-r2dbc` / `api-log-mybatis` instead — same `ApiLogWriter` contract, same `api_log` table.
+
 ## [0.5.2] — Fix bean registration in real consumer apps
 
 ### Fixed
