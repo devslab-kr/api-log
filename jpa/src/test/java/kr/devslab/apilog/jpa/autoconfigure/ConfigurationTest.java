@@ -93,7 +93,10 @@ class ConfigurationTest {
     @Test
     void apiLogWriter_isProvidedByJpaBackend() {
         ApiLogWriter writer = applicationContext.getBean(ApiLogWriter.class);
-        assertThat(writer.getClass().getSimpleName()).isEqualTo("JpaApiLogWriter");
+        // Spring AOP wraps the writer in a CGLIB proxy because of @Transactional,
+        // so the runtime class name is `JpaApiLogWriter$$SpringCGLIB$$0`.
+        // Substring check on the FQN survives the proxy wrapping.
+        assertThat(writer.getClass().getName()).contains("JpaApiLogWriter");
     }
 
     @Test

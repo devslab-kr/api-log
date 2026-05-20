@@ -12,6 +12,7 @@ import io.r2dbc.spi.R2dbcType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.r2dbc.core.DatabaseClient;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDateTime;
 
@@ -135,13 +136,22 @@ public class R2dbcApiLogWriter implements ApiLogWriter {
                 .bind("retryCount", retryCount)
                 .bind("isRetry", isRetry);
 
+        // Fire-and-forget — the whole point of this backend is to NOT block
+        // the caller's reactor thread. Pinning the subscription to
+        // boundedElastic guarantees the insert actually runs on a worker thread
+        // (without it the chain can starve when the caller hands control
+        // straight back to a CPU-bound test loop or a single-core CI runner —
+        // which is what bit the v0.6.0 first integration run).
         spec.fetch()
                 .rowsUpdated()
-                .subscribe(
-                        rows -> { /* success — listener already logs at DEBUG */ },
-                        ex -> log.error("R2DBC api_log insert failed: requestId={}, eventType={}",
-                                requestId, eventType, ex)
-                );
+                .subscribeOn(Schedulers.boundedElastic())
+                .doOnSuccess(rows -> log.debug(
+                        "R2DBC api_log insert ok: requestId={}, eventType={}, rows={}",
+                        requestId, eventType, rows))
+                .doOnError(ex -> log.error(
+                        "R2DBC api_log insert failed: requestId={}, eventType={}",
+                        requestId, eventType, ex))
+                .subscribe();
     }
 
     private static Object asJsonbParam(String value) {

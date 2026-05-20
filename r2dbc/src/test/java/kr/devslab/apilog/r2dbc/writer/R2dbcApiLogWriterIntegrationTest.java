@@ -71,7 +71,10 @@ class R2dbcApiLogWriterIntegrationTest {
 
     @Test
     void writer_isWiredFromR2dbcBackend() {
-        assertThat(writer.getClass().getSimpleName()).isEqualTo("R2dbcApiLogWriter");
+        // The R2DBC writer has no @Transactional today so it's not proxied,
+        // but matching the JPA/MyBatis tests' substring approach keeps it
+        // proxy-safe if that ever changes.
+        assertThat(writer.getClass().getName()).contains("R2dbcApiLogWriter");
     }
 
     @Test

@@ -82,6 +82,10 @@ dependencies {
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-web")
+    // Lets the ConfigurationTest assert that ReactiveApiClientAutoConfiguration
+    // also activates when WebClient is on the classpath — same shape as a real
+    // mixed Servlet+WebFlux consumer.
+    testImplementation("org.springframework.boot:spring-boot-starter-webflux")
     testImplementation("org.assertj:assertj-core")
     testImplementation("com.h2database:h2")
 

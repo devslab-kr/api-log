@@ -71,7 +71,10 @@ class MybatisApiLogWriterIntegrationTest {
 
     @Test
     void writer_isWiredFromMybatisBackend() {
-        assertThat(writer.getClass().getSimpleName()).isEqualTo("MybatisApiLogWriter");
+        // @Transactional on the writer makes Spring AOP wrap it in a CGLIB
+        // proxy whose simple name is `MybatisApiLogWriter$$SpringCGLIB$$0`.
+        // Substring on the FQN survives the proxy.
+        assertThat(writer.getClass().getName()).contains("MybatisApiLogWriter");
     }
 
     @Test
