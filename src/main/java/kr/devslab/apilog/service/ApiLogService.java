@@ -57,29 +57,58 @@ public class ApiLogService {
 
     public void saveApiCallError(ApiCallErrorEvent event) {
         Throwable error = event.getError();
-
-        Integer statusCode = null;
-        String responseBody = null;
-        if (error instanceof HttpStatusCodeException httpEx) {
-            statusCode = httpEx.getStatusCode().value();
-            responseBody = httpEx.getResponseBodyAsString();
-        } else if (error instanceof RestClientResponseException rcEx) {
-            statusCode = rcEx.getStatusCode().value();
-            responseBody = rcEx.getResponseBodyAsString();
-        }
+        HttpErrorInfo info = extractHttpErrorInfo(error);
 
         ApiLogEntity entity = ApiLogEntity.builder()
                 .eventType(event.isRetry() ? RETRY_ERROR : ERROR)
                 .requestId(event.getRequest().getRequestId())
                 .endpoint(event.getRequest().getEndpoint())
                 .payload(toJsonNode(event.getRequest().getPayload()))
-                .errorMessage(buildErrorJson(error, responseBody))
-                .statusCode(statusCode)
+                .errorMessage(buildErrorJson(error, info.responseBody()))
+                .statusCode(info.statusCode())
                 .timestamp(LocalDateTime.now())
                 .retryCount(event.getRetryCount())
                 .isRetry(event.isRetry())
                 .build();
         repository.save(entity);
+    }
+
+    private record HttpErrorInfo(Integer statusCode, String responseBody) {
+        static final HttpErrorInfo EMPTY = new HttpErrorInfo(null, null);
+    }
+
+    /**
+     * Pulls HTTP status + response body off a throwable when applicable.
+     *
+     * <p>Direct {@code instanceof} works for the Spring Web (blocking)
+     * hierarchy because we depend on {@code spring-web} unconditionally. For
+     * Spring WebFlux's {@code WebClientResponseException}, we duck-type via
+     * reflection — {@code spring-webflux} is an optional dependency on this
+     * starter, so we can't import its types directly without forcing it onto
+     * the classpath of consumers who only want the blocking client.
+     */
+    private HttpErrorInfo extractHttpErrorInfo(Throwable error) {
+        if (error instanceof HttpStatusCodeException ex) {
+            return new HttpErrorInfo(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+        }
+        if (error instanceof RestClientResponseException ex) {
+            return new HttpErrorInfo(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+        }
+        // Match WebClientResponseException + its concrete subclasses (NotFound,
+        // BadRequest, etc.) by package prefix so unrelated exceptions that
+        // happen to share method names don't match.
+        if (error.getClass().getName()
+                .startsWith("org.springframework.web.reactive.function.client.WebClientResponseException")) {
+            try {
+                Object status = error.getClass().getMethod("getStatusCode").invoke(error);
+                Integer statusValue = (Integer) status.getClass().getMethod("value").invoke(status);
+                Object body = error.getClass().getMethod("getResponseBodyAsString").invoke(error);
+                return new HttpErrorInfo(statusValue, body == null ? null : body.toString());
+            } catch (ReflectiveOperationException ignored) {
+                // Shape didn't match — fall through to EMPTY.
+            }
+        }
+        return HttpErrorInfo.EMPTY;
     }
 
     /**
