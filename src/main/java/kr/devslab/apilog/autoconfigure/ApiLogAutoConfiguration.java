@@ -104,11 +104,13 @@ public class ApiLogAutoConfiguration {
     }
 
     /**
-     * Fallback platform-thread executor for the async event listener.
-     * Active when {@code spring.threads.virtual.enabled} is missing or false.
+     * Fallback platform-thread executor — registered when virtual threads
+     * are disabled. No {@code @ConditionalOnMissingBean(TaskExecutor.class)} here
+     * because Spring Boot always registers its own {@code applicationTaskExecutor}
+     * and we want our named executor to coexist; consumers explicitly choose by
+     * name when they want it.
      */
     @Bean
-    @ConditionalOnMissingBean(TaskExecutor.class)
     @ConditionalOnProperty(name = "spring.threads.virtual.enabled", havingValue = "false", matchIfMissing = true)
     public ThreadPoolTaskExecutor apiLogPlatformThreadExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

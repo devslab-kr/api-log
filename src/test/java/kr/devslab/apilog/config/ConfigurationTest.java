@@ -118,11 +118,16 @@ class ConfigurationTest {
     }
 
     @Test
-    void allConfigurationBeans_shouldBePresent() {
-        // When & Then - 모든 주요 Configuration Bean들이 존재하는지 확인
-        assertThat(applicationContext.containsBean("jacksonConfig")).isTrue();
-        assertThat(applicationContext.containsBean("restClientConfig")).isTrue();
-        assertThat(applicationContext.containsBean("asyncConfig")).isTrue();
+    void allAutoConfigurationsShouldBePresent() {
+        // v0.5.2: three auto-config classes registered via
+        // META-INF/spring/.../AutoConfiguration.imports — assert all loaded.
+        assertThat(applicationContext.containsBean(
+                "kr.devslab.apilog.autoconfigure.ApiLogAutoConfiguration")).isTrue();
+        assertThat(applicationContext.containsBean(
+                "kr.devslab.apilog.autoconfigure.RestApiClientAutoConfiguration")).isTrue();
+        assertThat(applicationContext.containsBean(
+                "kr.devslab.apilog.autoconfigure.ReactiveApiClientAutoConfiguration")).isTrue();
+        // RetryConfig is @Imported by ApiLogAutoConfiguration.
         assertThat(applicationContext.containsBean("retryConfig")).isTrue();
     }
 }
