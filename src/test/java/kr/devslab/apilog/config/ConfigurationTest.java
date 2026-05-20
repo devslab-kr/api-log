@@ -75,25 +75,14 @@ class ConfigurationTest {
         assertThat(restClient).isNotNull();
     }
 
-    @Test
-    void restClientConfig_shouldCreateRestTemplate() {
-        // When
-        RestTemplate restTemplate = applicationContext.getBean(RestTemplate.class);
-
-        // Then
-        assertThat(restTemplate).isNotNull();
-        assertThat(restTemplate.getMessageConverters()).isNotEmpty();
-
-        // Check if it has our custom MappingJackson2HttpMessageConverter
-        boolean hasCustomConverter = restTemplate.getMessageConverters().stream()
-                .anyMatch(converter -> converter instanceof MappingJackson2HttpMessageConverter);
-        assertThat(hasCustomConverter).isTrue();
-    }
+    // v0.5.2: RestTemplate bean removed (was accidentally exposed by the old
+    // RestClientConfig — never advertised, not part of the public API). Use
+    // RestClient instead. Test removed accordingly.
 
     @Test
     void asyncConfig_shouldCreateVirtualThreadTaskExecutor() {
         // When
-        TaskExecutor taskExecutor = applicationContext.getBean("virtualThreadTaskExecutor", TaskExecutor.class);
+        TaskExecutor taskExecutor = applicationContext.getBean("apiLogVirtualThreadExecutor", TaskExecutor.class);
 
         // Then
         assertThat(taskExecutor).isNotNull();
@@ -103,7 +92,7 @@ class ConfigurationTest {
     @Test
     void asyncConfig_shouldNotCreateThreadPoolTaskExecutor() {
         // Given & When
-        boolean hasThreadPoolTaskExecutor = applicationContext.containsBean("threadPoolTaskExecutor");
+        boolean hasThreadPoolTaskExecutor = applicationContext.containsBean("apiLogPlatformThreadExecutor");
 
         // Then - Virtual Threads가 활성화되어 있으므로 ThreadPoolTaskExecutor는 생성되지 않아야 함
         assertThat(hasThreadPoolTaskExecutor).isFalse();
@@ -164,7 +153,7 @@ class ConfigurationWithoutVirtualThreadsTest {
     @Test
     void asyncConfig_shouldCreateThreadPoolTaskExecutor() {
         // When
-        TaskExecutor taskExecutor = applicationContext.getBean("threadPoolTaskExecutor", TaskExecutor.class);
+        TaskExecutor taskExecutor = applicationContext.getBean("apiLogPlatformThreadExecutor", TaskExecutor.class);
 
         // Then
         assertThat(taskExecutor).isNotNull();
@@ -174,7 +163,7 @@ class ConfigurationWithoutVirtualThreadsTest {
     @Test
     void asyncConfig_shouldNotCreateVirtualThreadTaskExecutor() {
         // Given & When
-        boolean hasVirtualThreadTaskExecutor = applicationContext.containsBean("virtualThreadTaskExecutor");
+        boolean hasVirtualThreadTaskExecutor = applicationContext.containsBean("apiLogVirtualThreadExecutor");
 
         // Then - Virtual Threads가 비활성화되어 있으므로 VirtualThreadTaskExecutor는 생성되지 않아야 함
         assertThat(hasVirtualThreadTaskExecutor).isFalse();
