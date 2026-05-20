@@ -37,6 +37,20 @@ jobs:
         id: ver
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
+      - name: Diag — all secret lengths
+        env:
+          K: ${{ secrets.SIGNING_KEY }}
+          ID: ${{ secrets.SIGNING_KEY_ID }}
+          P: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          U: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          PW: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        run: |
+          echo "SIGNING_KEY length=${#K}"
+          echo "SIGNING_KEY_ID length=${#ID}"
+          echo "SIGNING_KEY_PASSWORD length=${#P}"
+          echo "MAVEN_CENTRAL_USERNAME length=${#U}"
+          echo "MAVEN_CENTRAL_PASSWORD length=${#PW}"
+
       - name: Build and test
         run: ./gradlew build --no-configuration-cache --stacktrace -PVERSION=${{ steps.ver.outputs.version }}
 
