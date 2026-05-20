@@ -7,20 +7,31 @@ The source of truth for the entries below is [docs/changelog.md](docs/changelog.
 
 ## [Unreleased]
 
-## [0.5.0] — Reactive client, full HTTP-verb coverage, end-to-end HTTP tests
+## [0.5.1] — Reactive (WebFlux) client + end-to-end HTTP tests
 
 ### Added
 
 - **`ReactiveApiClientUtil`** — `WebClient`-backed reactive client, returns `Mono<ApiResponse>` / `Mono<T>`. Same API shape as `RestApiClientUtil`. Auto-registered when `spring-webflux` is on the classpath (declared optional).
+- MockWebServer + Testcontainers HTTP integration tests for both clients — real HTTP, real DB, real assertions on `api_log`.
+
+### Fixed
+
+- `ApiLogService` now extracts `status_code` / `responseBody` from `WebClientResponseException` (parallel hierarchy to `HttpStatusCodeException`) via reflection. Reactive 4xx/5xx rows previously had `status_code = NULL`.
+
+Full notes in [docs/changelog.md](docs/changelog.md#051--reactive-webflux-client--end-to-end-http-tests).
+
+## [0.5.0] — PUT / DELETE / PATCH + retry-correlation via core API
+
+### Added
+
 - **PUT / DELETE / PATCH** convenience methods on `RestApiClientUtil` (12 new methods).
 - **Core `send` / `sendAsync` / `sendTyped` / `sendAsyncTyped`** API taking `(HttpMethod, ApiRequest)` directly. Lets callers supply an explicit `requestId` so retry attempts share a correlation key.
-- **MockWebServer + Testcontainers HTTP integration tests** for both clients — real HTTP, real DB, real assertions on `api_log`.
 
 ### Changed
 
-- Internal refactor: all 22 convenience methods on `RestApiClientUtil` now funnel through the four core `send*` methods. Public API unchanged, behavior identical to v0.4.0.
+- Internal refactor: all 22 convenience methods on `RestApiClientUtil` now funnel through the four core `send*` methods. Public API unchanged.
 
-Fully backward-compatible with v0.4.0. Full notes in [docs/changelog.md](docs/changelog.md#050--reactive-client-full-http-verb-coverage-end-to-end-http-tests).
+Fully backward-compatible with v0.4.0.
 
 ## [0.4.0] — Bug fixes: real status codes, structured errors, honest retry docs
 
