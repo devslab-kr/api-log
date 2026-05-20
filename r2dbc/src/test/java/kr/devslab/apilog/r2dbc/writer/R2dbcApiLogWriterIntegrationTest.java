@@ -97,7 +97,7 @@ class R2dbcApiLogWriterIntegrationTest {
             assertThat(row.get("retry_count")).isEqualTo(0);
             assertThat(row.get("is_retry")).isEqualTo(false);
             // payload is JSONB; toString round-trips to canonical JSON
-            assertThat(row.get("payload").toString()).contains("\"amount\":100");
+            assertThat(row.get("payload").toString()).contains("\"amount\": 100");
         });
     }
 
@@ -117,7 +117,7 @@ class R2dbcApiLogWriterIntegrationTest {
             Map<String, Object> row = rows.get(0);
             assertThat(row.get("event_type")).isEqualTo("SUCCESS");
             assertThat(row.get("status_code")).isEqualTo(201);
-            assertThat(row.get("response").toString()).contains("\"id\":\"ch_1\"");
+            assertThat(row.get("response").toString()).contains("\"id\": \"ch_1\"");
         });
     }
 
@@ -139,8 +139,8 @@ class R2dbcApiLogWriterIntegrationTest {
             // Non-HTTP exception → no status_code
             assertThat(row.get("status_code")).isNull();
             assertThat(row.get("error_message").toString())
-                    .contains("\"type\":\"java.lang.IllegalStateException\"")
-                    .contains("\"message\":\"connection broken\"");
+                    .contains("\"type\": \"java.lang.IllegalStateException\"")
+                    .contains("\"message\": \"connection broken\"");
         });
     }
 

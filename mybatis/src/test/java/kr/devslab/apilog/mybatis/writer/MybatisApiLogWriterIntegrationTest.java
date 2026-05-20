@@ -117,7 +117,7 @@ class MybatisApiLogWriterIntegrationTest {
         assertThat(row.getEndpoint()).isEqualTo("/charges");
         assertThat(row.getRetryCount()).isEqualTo(0);
         assertThat(row.getIsRetry()).isFalse();
-        assertThat(row.getPayload()).contains("\"amount\":100");
+        assertThat(row.getPayload()).contains("\"amount\": 100");
     }
 
     @Test
@@ -135,7 +135,7 @@ class MybatisApiLogWriterIntegrationTest {
         ApiLogRow row = rows.get(0);
         assertThat(row.getEventType()).isEqualTo(SUCCESS);
         assertThat(row.getStatusCode()).isEqualTo(201);
-        assertThat(row.getResponse()).contains("\"id\":\"ch_1\"");
+        assertThat(row.getResponse()).contains("\"id\": \"ch_1\"");
     }
 
     @Test
@@ -154,8 +154,8 @@ class MybatisApiLogWriterIntegrationTest {
         assertThat(row.getEventType()).isEqualTo(ERROR);
         assertThat(row.getStatusCode()).isNull();
         assertThat(row.getErrorMessage())
-                .contains("\"type\":\"java.lang.IllegalStateException\"")
-                .contains("\"message\":\"connection broken\"");
+                .contains("\"type\": \"java.lang.IllegalStateException\"")
+                .contains("\"message\": \"connection broken\"");
     }
 
     @Test
