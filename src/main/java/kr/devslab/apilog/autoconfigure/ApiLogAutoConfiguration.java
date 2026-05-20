@@ -7,6 +7,7 @@ import kr.devslab.apilog.service.ApiLogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -14,7 +15,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
@@ -78,20 +78,19 @@ public class ApiLogAutoConfiguration {
     }
 
     /**
-     * High-throughput {@link ObjectMapper} with the Blackbird module registered.
-     * Marked {@link Primary} so JPA's JSONB conversion picks it up over
-     * Spring Boot's default — Blackbird gives ~30-50% serialization speedup
-     * which matters for log writes on every API call.
+     * Adds the Blackbird module to Spring Boot's auto-configured
+     * {@code ObjectMapper} — ~30-50% Jackson serialization speedup, which
+     * matters because every API call writes JSONB payloads to {@code api_log}.
      *
-     * <p>Define your own primary {@code ObjectMapper} bean to override.
+     * <p>Using {@link Jackson2ObjectMapperBuilderCustomizer} (rather than
+     * defining our own {@code @Primary ObjectMapper} bean) keeps Spring Boot's
+     * default ObjectMapper as the canonical one — modules added by other
+     * customizers (consumer's own, other libraries') compose cleanly.
      */
     @Bean
-    @Primary
-    @ConditionalOnMissingBean(name = "apiLogObjectMapper")
-    public ObjectMapper apiLogObjectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new BlackbirdModule());
-        return mapper;
+    @ConditionalOnMissingBean(name = "apiLogJacksonCustomizer")
+    public Jackson2ObjectMapperBuilderCustomizer apiLogJacksonCustomizer() {
+        return builder -> builder.modulesToInstall(new BlackbirdModule());
     }
 
     /**
