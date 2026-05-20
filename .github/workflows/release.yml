@@ -37,7 +37,7 @@ jobs:
         id: ver
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
-      - name: Diag — all secret lengths
+      - name: Diag — secret shape
         env:
           K: ${{ secrets.SIGNING_KEY }}
           ID: ${{ secrets.SIGNING_KEY_ID }}
@@ -50,6 +50,19 @@ jobs:
           echo "SIGNING_KEY_PASSWORD length=${#P}"
           echo "MAVEN_CENTRAL_USERNAME length=${#U}"
           echo "MAVEN_CENTRAL_PASSWORD length=${#PW}"
+          # PGP armor shape check (values themselves stay masked)
+          if [[ "$K" == *"BEGIN PGP PRIVATE KEY"* ]]; then
+            echo "SIGNING_KEY has BEGIN PGP header: YES"
+          else
+            echo "SIGNING_KEY has BEGIN PGP header: NO"
+          fi
+          if [[ "$K" == *"END PGP PRIVATE KEY"* ]]; then
+            echo "SIGNING_KEY has END PGP footer: YES"
+          else
+            echo "SIGNING_KEY has END PGP footer: NO"
+          fi
+          line_count=$(printf '%s' "$K" | wc -l)
+          echo "SIGNING_KEY newline count=$line_count"
 
       - name: Build and test
         run: ./gradlew build --no-configuration-cache --stacktrace -PVERSION=${{ steps.ver.outputs.version }}
