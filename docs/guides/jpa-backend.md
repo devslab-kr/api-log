@@ -32,7 +32,7 @@ you're on MyBatis, prefer [`api-log-mybatis`](mybatis-backend.md). The
 === "Gradle (Kotlin DSL)"
 
     ```kotlin
-    implementation("kr.devslab:api-log-jpa:0.6.0")
+    implementation("kr.devslab:api-log-jpa:3.0.0")
     ```
 
 `api-log-jpa` transitively pulls in `api-log-core` (events, listener, HTTP

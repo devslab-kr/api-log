@@ -31,7 +31,7 @@ is identical across all three.
 === "Gradle (Kotlin DSL)"
 
     ```kotlin
-    implementation("kr.devslab:api-log-mybatis:0.6.0")
+    implementation("kr.devslab:api-log-mybatis:3.0.0")
     ```
 
 `api-log-mybatis` transitively pulls in `api-log-core`,

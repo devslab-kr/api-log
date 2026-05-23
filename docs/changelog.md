@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.0.0] — Spring-major-aligned versioning policy
+
+**Renumbering of `0.6.0`** per the new [Spring-major-aligned versioning policy](https://github.com/devslab-kr/.github/blob/main/.github/VERSIONING.md). No API, behaviour, or dependency changes — the major number bumps from `0.6` to `3.0` to match the Spring Boot major this line targets (Spring Boot 3). Published JAR bytes are identical to `0.6.0` apart from the version coordinate.
+
+Going forward, all Spring Boot 3 releases of api-log ship on the `3.x.y` line. The previous `0.6.0` artifacts remain on Maven Central as historical references.
+
+### Upgrading from `0.6.0`
+
+```diff
+- implementation("kr.devslab:api-log-jpa:0.6.0")
++ implementation("kr.devslab:api-log-jpa:3.0.0")
+- implementation("kr.devslab:api-log-r2dbc:0.6.0")
++ implementation("kr.devslab:api-log-r2dbc:3.0.0")
+- implementation("kr.devslab:api-log-mybatis:0.6.0")
++ implementation("kr.devslab:api-log-mybatis:3.0.0")
+```
+
+No other changes. Same `ApiLogWriter` SPI, same auto-configuration shape.
+
 ## [0.6.0] — Multi-module split (Gradle), pluggable JPA / R2DBC / MyBatis backends
 
 ### Changed

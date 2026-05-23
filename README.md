@@ -113,9 +113,9 @@ coordinate is enough.
 ### Gradle
 
 ```kotlin
-implementation("kr.devslab:api-log-jpa:0.6.0")
-// or "kr.devslab:api-log-r2dbc:0.6.0"
-// or "kr.devslab:api-log-mybatis:0.6.0"
+implementation("kr.devslab:api-log-jpa:3.0.0")
+// or "kr.devslab:api-log-r2dbc:3.0.0"
+// or "kr.devslab:api-log-mybatis:3.0.0"
 ```
 
 ## Configuration

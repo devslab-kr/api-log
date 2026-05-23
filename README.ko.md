@@ -112,9 +112,9 @@ v0.6.0부터 스타터가 4개 아티팩트로 분리됐습니다 — 백엔드 
 ### Gradle
 
 ```kotlin
-implementation("kr.devslab:api-log-jpa:0.6.0")
-// 또는 "kr.devslab:api-log-r2dbc:0.6.0"
-// 또는 "kr.devslab:api-log-mybatis:0.6.0"
+implementation("kr.devslab:api-log-jpa:3.0.0")
+// 또는 "kr.devslab:api-log-r2dbc:3.0.0"
+// 또는 "kr.devslab:api-log-mybatis:3.0.0"
 ```
 
 ## 설정

@@ -30,7 +30,7 @@ JPA를 쓰고 있으면 [`api-log-jpa`](jpa-backend.md) 선택. WebFlux + R2DBC�
 === "Gradle (Kotlin DSL)"
 
     ```kotlin
-    implementation("kr.devslab:api-log-mybatis:0.6.0")
+    implementation("kr.devslab:api-log-mybatis:3.0.0")
     ```
 
 `api-log-mybatis`는 `api-log-core`, `mybatis-spring-boot-starter:3.0.4`
