@@ -72,7 +72,7 @@ ApiEventListener  (api-log-core)
 
 ## 설치
 
-v0.6.0부터 스타터가 4개 아티팩트로 분리됐습니다 — 백엔드 비종속 코어 1개 +
+v3.0.0부터 스타터가 4개 아티팩트로 분리됐습니다 — 백엔드 비종속 코어 1개 +
 영속화 백엔드 1개. **`api-log-core` 1개 + 백엔드 1개**를 직접 골라 추가:
 
 | 좌표 | 언제 쓰나 |
@@ -91,21 +91,21 @@ v0.6.0부터 스타터가 4개 아티팩트로 분리됐습니다 — 백엔드 
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-jpa</artifactId>
-    <version>0.6.0</version>
+    <version>3.0.0</version>
 </dependency>
 
 <!-- 또는 리액티브 앱에서 R2DBC -->
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-r2dbc</artifactId>
-    <version>0.6.0</version>
+    <version>3.0.0</version>
 </dependency>
 
 <!-- 또는 MyBatis -->
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-mybatis</artifactId>
-    <version>0.6.0</version>
+    <version>3.0.0</version>
 </dependency>
 ```
 

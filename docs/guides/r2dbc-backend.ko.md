@@ -23,7 +23,7 @@ Servlet 스택이라면 JPA가 더 자연스럽습니다 — [`api-log-jpa`](jpa
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-r2dbc</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
     ```
 
@@ -61,7 +61,7 @@ spring:
 | `ApiLogR2dbcSchemaInitializer` | Spring Boot의 `R2dbcScriptDatabaseInitializer`로 `V1.0__create_api_log.sql`을 리액티브하게 실행 (BUILTIN 모드만) |
 
 스키마 초기화는 `ConnectionFactory`와만 통신합니다 — **JDBC DataSource가
-필요 없음**, 부팅 시에도. v0.6.0에서 이 백엔드가 약속하는 핵심:
+필요 없음**, 부팅 시에도. v3.0.0에서 이 백엔드가 약속하는 핵심:
 완전 리액티브 `api_log` 설치.
 
 ## 행이 어떻게 써지는가

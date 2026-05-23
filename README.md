@@ -72,7 +72,7 @@ ApiEventListener  (api-log-core)
 
 ## Installation
 
-v0.6.0 splits the starter into four artifacts: a backend-agnostic core, plus
+v3.0.0 splits the starter into four artifacts: a backend-agnostic core, plus
 one of three persistence backends. Add **`api-log-core` plus exactly one
 backend** to your build:
 
@@ -92,21 +92,21 @@ coordinate is enough.
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-jpa</artifactId>
-    <version>0.6.0</version>
+    <version>3.0.0</version>
 </dependency>
 
 <!-- ...or R2DBC for reactive apps -->
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-r2dbc</artifactId>
-    <version>0.6.0</version>
+    <version>3.0.0</version>
 </dependency>
 
 <!-- ...or MyBatis -->
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-mybatis</artifactId>
-    <version>0.6.0</version>
+    <version>3.0.0</version>
 </dependency>
 ```
 

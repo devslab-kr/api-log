@@ -8,7 +8,7 @@
 
 ## 의존성 추가
 
-v0.6.0부터 스타터가 백엔드 비종속 코어 + 영속화 백엔드 1개로 분리됐습니다.
+v3.0.0부터 스타터가 백엔드 비종속 코어 + 영속화 백엔드 1개로 분리됐습니다.
 **아래 표에서 한 줄만 고르면 됩니다 — 해당 백엔드 아티팩트가
 `api-log-core`를 transitive하게 가져옵니다.**
 
@@ -25,21 +25,21 @@ v0.6.0부터 스타터가 백엔드 비종속 코어 + 영속화 백엔드 1개�
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-jpa</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
 
     <!-- 또는 리액티브 앱에서 -->
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-r2dbc</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
 
     <!-- 또는 MyBatis -->
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-mybatis</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
     ```
 
@@ -65,12 +65,12 @@ v0.6.0부터 스타터가 백엔드 비종속 코어 + 영속화 백엔드 1개�
     ```
 
 !!! tip "최신 버전"
-    `0.6.0`은 [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-core)의 최신 버전으로 교체.
+    `3.0.0`은 [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-core)의 최신 버전으로 교체.
 
 !!! info "v0.5.x에서 업그레이드?"
     기존 `api-log-spring-boot-starter` 좌표를 `api-log-jpa`로 바꾸면 됩니다
     (동일 JPA 백엔드, 동일 `api_log` 행). 일부 패키지 이름이 바뀌었으니
-    [v0.6.0 변경 이력](../changelog.md#060--멀티모듈-분리-gradle-jpa--r2dbc--mybatis-백엔드-선택-지원)에서
+    [v3.0.0 변경 이력](../changelog.md#060--멀티모듈-분리-gradle-jpa--r2dbc--mybatis-백엔드-선택-지원)에서
     매핑 표 참고.
 
 ## 각 아티팩트가 가져오는 의존성

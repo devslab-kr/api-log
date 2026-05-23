@@ -8,7 +8,7 @@
 
 ## Adding the dependency
 
-v0.6.0 splits the starter into a backend-agnostic core plus one persistence
+v3.0.0 splits the starter into a backend-agnostic core plus one persistence
 backend per artifact. **Pick one row from the table below — that's it; the
 backend artifact pulls in `api-log-core` transitively.**
 
@@ -25,21 +25,21 @@ backend artifact pulls in `api-log-core` transitively.**
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-jpa</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
 
     <!-- ...or, for reactive apps -->
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-r2dbc</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
 
     <!-- ...or, MyBatis -->
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-mybatis</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
     ```
 
@@ -65,12 +65,12 @@ backend artifact pulls in `api-log-core` transitively.**
     ```
 
 !!! tip "Latest version"
-    Replace `0.6.0` with the latest from [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-core).
+    Replace `3.0.0` with the latest from [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-core).
 
 !!! info "Upgrading from v0.5.x?"
     Swap the old `api-log-spring-boot-starter` coordinate for `api-log-jpa`
     (same JPA backend, same `api_log` rows). A few packages were renamed —
-    see the [v0.6.0 changelog](../changelog.md#060--multi-module-split-gradle-pluggable-jpa--r2dbc--mybatis-backends)
+    see the [v3.0.0 changelog](../changelog.md#060--multi-module-split-gradle-pluggable-jpa--r2dbc--mybatis-backends)
     for the complete mapping.
 
 ## What each artifact pulls in

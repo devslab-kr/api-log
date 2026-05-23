@@ -25,7 +25,7 @@ you're on MyBatis, prefer [`api-log-mybatis`](mybatis-backend.md). The
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-jpa</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
     ```
 

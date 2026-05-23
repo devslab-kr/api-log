@@ -24,7 +24,7 @@ is identical across all three.
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-mybatis</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
     ```
 

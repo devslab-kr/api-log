@@ -23,7 +23,7 @@ JPA를 쓰고 있으면 [`api-log-jpa`](jpa-backend.md) 선택. WebFlux + R2DBC�
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-mybatis</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
     ```
 
