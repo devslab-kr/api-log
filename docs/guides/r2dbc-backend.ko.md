@@ -23,14 +23,14 @@ Servlet 스택이라면 JPA가 더 자연스럽습니다 — [`api-log-jpa`](jpa
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-r2dbc</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
     ```
 
 === "Gradle (Kotlin DSL)"
 
     ```kotlin
-    implementation("kr.devslab:api-log-r2dbc:3.0.0")
+    implementation("kr.devslab:api-log-r2dbc:3.0.1")
     ```
 
 `api-log-r2dbc`는 `api-log-core`와 `spring-r2dbc` (`DatabaseClient`),

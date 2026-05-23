@@ -24,14 +24,14 @@ is identical across all three.
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-mybatis</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
     ```
 
 === "Gradle (Kotlin DSL)"
 
     ```kotlin
-    implementation("kr.devslab:api-log-mybatis:3.0.0")
+    implementation("kr.devslab:api-log-mybatis:3.0.1")
     ```
 
 `api-log-mybatis` transitively pulls in `api-log-core`,

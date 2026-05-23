@@ -92,30 +92,30 @@ coordinate is enough.
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-jpa</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 
 <!-- ...or R2DBC for reactive apps -->
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-r2dbc</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 
 <!-- ...or MyBatis -->
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-mybatis</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```kotlin
-implementation("kr.devslab:api-log-jpa:3.0.0")
-// or "kr.devslab:api-log-r2dbc:3.0.0"
-// or "kr.devslab:api-log-mybatis:3.0.0"
+implementation("kr.devslab:api-log-jpa:3.0.1")
+// or "kr.devslab:api-log-r2dbc:3.0.1"
+// or "kr.devslab:api-log-mybatis:3.0.1"
 ```
 
 ## Configuration

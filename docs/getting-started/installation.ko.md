@@ -25,21 +25,21 @@ v3.0.0부터 스타터가 백엔드 비종속 코어 + 영속화 백엔드 1개�
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-jpa</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
 
     <!-- 또는 리액티브 앱에서 -->
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-r2dbc</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
 
     <!-- 또는 MyBatis -->
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-mybatis</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
     ```
 
@@ -48,9 +48,9 @@ v3.0.0부터 스타터가 백엔드 비종속 코어 + 영속화 백엔드 1개�
     ```kotlin
     dependencies {
         // JPA — v0.5.x 드롭인
-        implementation("kr.devslab:api-log-jpa:3.0.0")
-        // 또는 "kr.devslab:api-log-r2dbc:3.0.0"
-        // 또는 "kr.devslab:api-log-mybatis:3.0.0"
+        implementation("kr.devslab:api-log-jpa:3.0.1")
+        // 또는 "kr.devslab:api-log-r2dbc:3.0.1"
+        // 또는 "kr.devslab:api-log-mybatis:3.0.1"
     }
     ```
 
@@ -58,14 +58,14 @@ v3.0.0부터 스타터가 백엔드 비종속 코어 + 영속화 백엔드 1개�
 
     ```groovy
     dependencies {
-        implementation 'kr.devslab:api-log-jpa:3.0.0'
-        // 또는 'kr.devslab:api-log-r2dbc:3.0.0'
-        // 또는 'kr.devslab:api-log-mybatis:3.0.0'
+        implementation 'kr.devslab:api-log-jpa:3.0.1'
+        // 또는 'kr.devslab:api-log-r2dbc:3.0.1'
+        // 또는 'kr.devslab:api-log-mybatis:3.0.1'
     }
     ```
 
 !!! tip "최신 버전"
-    `3.0.0`은 [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-core)의 최신 버전으로 교체.
+    `3.0.1`은 [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-core)의 최신 버전으로 교체.
 
 !!! info "v0.5.x에서 업그레이드?"
     기존 `api-log-spring-boot-starter` 좌표를 `api-log-jpa`로 바꾸면 됩니다
