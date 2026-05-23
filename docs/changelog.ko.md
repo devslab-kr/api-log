@@ -6,6 +6,25 @@
 
 ## [Unreleased]
 
+## [3.0.0] — Spring-major 정렬 버전 정책
+
+**`0.6.0`의 재번호링** — 새 [Spring-major 정렬 버전 정책](https://github.com/devslab-kr/.github/blob/main/.github/VERSIONING.md#한국어)에 따름. API / 동작 / 의존성 변경 전혀 없음 — 메이저 숫자를 `0.6` → `3.0`으로 올려서 이 라인의 타겟 Spring Boot 메이저 (Spring Boot 3)와 일치시킴. 발행된 JAR 바이트는 `0.6.0`과 동일 (POM의 버전 좌표만 다름).
+
+앞으로 모든 Spring Boot 3 릴리즈는 `3.x.y` 라인. 기존 `0.6.0` 아티팩트는 historical reference로 Maven Central에 잔존.
+
+### `0.6.0`에서 올라오기
+
+```diff
+- implementation("kr.devslab:api-log-jpa:0.6.0")
++ implementation("kr.devslab:api-log-jpa:3.0.0")
+- implementation("kr.devslab:api-log-r2dbc:0.6.0")
++ implementation("kr.devslab:api-log-r2dbc:3.0.0")
+- implementation("kr.devslab:api-log-mybatis:0.6.0")
++ implementation("kr.devslab:api-log-mybatis:3.0.0")
+```
+
+다른 변경 없음. `ApiLogWriter` SPI 동일, 자동 설정 형태 동일.
+
 ## [0.6.0] — 멀티모듈 분리 (Gradle), JPA / R2DBC / MyBatis 백엔드 선택 지원
 
 ### Changed

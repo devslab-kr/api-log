@@ -48,9 +48,9 @@ v0.6.0부터 스타터가 백엔드 비종속 코어 + 영속화 백엔드 1개�
     ```kotlin
     dependencies {
         // JPA — v0.5.x 드롭인
-        implementation("kr.devslab:api-log-jpa:0.6.0")
-        // 또는 "kr.devslab:api-log-r2dbc:0.6.0"
-        // 또는 "kr.devslab:api-log-mybatis:0.6.0"
+        implementation("kr.devslab:api-log-jpa:3.0.0")
+        // 또는 "kr.devslab:api-log-r2dbc:3.0.0"
+        // 또는 "kr.devslab:api-log-mybatis:3.0.0"
     }
     ```
 
@@ -58,9 +58,9 @@ v0.6.0부터 스타터가 백엔드 비종속 코어 + 영속화 백엔드 1개�
 
     ```groovy
     dependencies {
-        implementation 'kr.devslab:api-log-jpa:0.6.0'
-        // 또는 'kr.devslab:api-log-r2dbc:0.6.0'
-        // 또는 'kr.devslab:api-log-mybatis:0.6.0'
+        implementation 'kr.devslab:api-log-jpa:3.0.0'
+        // 또는 'kr.devslab:api-log-r2dbc:3.0.0'
+        // 또는 'kr.devslab:api-log-mybatis:3.0.0'
     }
     ```
 

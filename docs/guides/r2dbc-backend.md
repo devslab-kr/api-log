@@ -32,7 +32,7 @@ rows in `api_log`.
 === "Gradle (Kotlin DSL)"
 
     ```kotlin
-    implementation("kr.devslab:api-log-r2dbc:0.6.0")
+    implementation("kr.devslab:api-log-r2dbc:3.0.0")
     ```
 
 `api-log-r2dbc` transitively pulls in `api-log-core` plus `spring-r2dbc`

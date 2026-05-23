@@ -30,7 +30,7 @@ WebFlux + R2DBC 환경이면 [`api-log-r2dbc`](r2dbc-backend.md), MyBatis 환경
 === "Gradle (Kotlin DSL)"
 
     ```kotlin
-    implementation("kr.devslab:api-log-jpa:0.6.0")
+    implementation("kr.devslab:api-log-jpa:3.0.0")
     ```
 
 `api-log-jpa`는 `api-log-core` (이벤트, 리스너, HTTP 유틸)와
