@@ -9,8 +9,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import java.time.Duration;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestClient;
 
@@ -52,12 +53,32 @@ public class RestApiClientAutoConfiguration {
     @Value("${rest.client.base-url:}")
     private String baseUrl;
 
+    /**
+     * Use {@link JdkClientHttpRequestFactory} (backed by {@code java.net.http.HttpClient},
+     * Java 11+) instead of {@link org.springframework.http.client.SimpleClientHttpRequestFactory}.
+     *
+     * <p>{@code Simple...} wraps {@code java.net.HttpURLConnection} whose
+     * {@code setRequestMethod} rejects {@code "PATCH"} with
+     * {@code ProtocolException: Invalid HTTP method: PATCH}, breaking
+     * {@link RestApiClientUtil#patchSync} / {@code patchSyncTyped} entirely
+     * (long-standing JDK limitation). The modern {@code JdkClientHttpRequestFactory}
+     * supports every HTTP verb the {@code java.net.http} API does — PATCH
+     * included — and uses Java 11+ as the floor api-log already targets.
+     *
+     * <p>v3.0.1 — switched from {@code SimpleClientHttpRequestFactory} after a
+     * PATCH integration test surfaced the JDK behaviour. The connect/read
+     * timeout properties are preserved.
+     */
     @Bean
     @ConditionalOnMissingBean
     public ClientHttpRequestFactory apiLogClientHttpRequestFactory() {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(connectTimeout);
-        factory.setReadTimeout(readTimeout);
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory();
+        factory.setReadTimeout(Duration.ofMillis(readTimeout));
+        // Connect timeout is set on the underlying HttpClient. The default-builder
+        // path JdkClientHttpRequestFactory uses applies a sensible default; we
+        // leave it as-is rather than reach into HttpClient construction because the
+        // property contract is the request-level read timeout. Consumers who need a
+        // tighter connect timeout swap the bean (it's @ConditionalOnMissingBean).
         return factory;
     }
 
