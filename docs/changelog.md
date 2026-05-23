@@ -6,6 +6,85 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [3.0.1] — HTTP client fixes: Content-Type on body + PATCH method support
+
+Two bugs in the HTTP client utilities (`RestApiClientUtil` /
+`ReactiveApiClientUtil`) surfaced when the first real downstream consumer
+(`devslab-examples`'s `api-log-*-demo` set) exercised the POST/PUT/PATCH paths
+through actual `@RequestBody`-annotated Spring controllers.
+
+### Fixed
+
+- **`Content-Type` header was missing on POST/PUT/PATCH bodies.** The utils
+  serialised the body via Jackson then passed the resulting `String` to
+  `RestClient.body(String)` / `WebClient.bodyValue(String)`. Spring's
+  `StringHttpMessageConverter` then wrote the body as
+  `Content-Type: text/plain;charset=ISO-8859-1` (its default for raw String
+  bodies), and downstream services that bind with `@RequestBody Foo` rejected
+  it as Unsupported Media Type. The fix sets `application/json` explicitly in
+  both `exchange()` methods.
+- **`patchSync*` / `patchAsync*` was broken end-to-end.** The auto-config
+  registered a `SimpleClientHttpRequestFactory` (backed by
+  `java.net.HttpURLConnection`), whose `setRequestMethod` throws
+  `ProtocolException: Invalid HTTP method: PATCH` — a long-standing JDK
+  limitation. Swapped to `JdkClientHttpRequestFactory` (backed by
+  `java.net.http.HttpClient`, Java 11+) which supports all five HTTP verbs.
+  Read-timeout property preserved; connect-timeout default is left to
+  `HttpClient`'s built-in.
+
+### Added — End-to-end integration test coverage
+
+`core/src/test/java/.../util/` now has four new test classes (65 cases
+total):
+
+- **`RestApiClientUtilWireIT`** / **`ReactiveApiClientUtilWireIT`** —
+  MockWebServer-driven wire-level assertions. Verify `Content-Type` on every
+  body-carrying verb, exact body bytes, UTF-8 encoding (Korean + emoji round
+  trip), large bodies (32 KB), HTTP method propagation, and that internal
+  fields (e.g. `ApiRequest.requestId`) don't leak into wire headers.
+- **`RestApiClientUtilSpringE2EIT`** / **`ReactiveApiClientUtilSpringE2EIT`** —
+  Real `@SpringBootTest` with `@RestController` declaring `@RequestBody Foo`
+  handlers, on Tomcat / reactor-netty respectively. Each pins
+  `spring.main.web-application-type` because the test classpath has both
+  starters. Covers all five verbs + 4xx/5xx propagation + Unicode/nested/
+  null-field round-trips.
+
+The existing `RestApiClientUtilRoutingTest` /
+`ReactiveApiClientUtilRoutingTest` (subclass-based, no real HTTP) couldn't
+catch either of these bugs because they never reached the network layer. The
+new IT classes close that gap and act as regression coverage for any future
+HTTP-client refactor.
+
+### Compatibility
+
+- **No API changes.** All `RestApiClientUtil` / `ReactiveApiClientUtil` method
+  signatures unchanged. Strict drop-in upgrade from `3.0.0`.
+- **Behaviour change for raw non-JSON String bodies.** Before `3.0.1`, raw
+  String payloads went out as `text/plain`. After `3.0.1`, all body-carrying
+  calls send `application/json`. If you genuinely need a different content
+  type for an outbound call, use Spring's `RestClient` / `WebClient`
+  directly — api-log's wrappers are explicitly JSON-only by design (the whole
+  library is JSON + JSONB-centric).
+- **`ClientHttpRequestFactory` bean swap.** Any consumer that supplied their
+  own `ClientHttpRequestFactory` via `@ConditionalOnMissingBean` continues to
+  win; only the default factory changed.
+
+### Upgrading from `3.0.0`
+
+```diff
+- implementation("kr.devslab:api-log-core:3.0.0")
++ implementation("kr.devslab:api-log-core:3.0.1")
+- implementation("kr.devslab:api-log-jpa:3.0.0")
++ implementation("kr.devslab:api-log-jpa:3.0.1")
+- implementation("kr.devslab:api-log-r2dbc:3.0.0")
++ implementation("kr.devslab:api-log-r2dbc:3.0.1")
+- implementation("kr.devslab:api-log-mybatis:3.0.0")
++ implementation("kr.devslab:api-log-mybatis:3.0.1")
+```
+
+Recommended for everyone on `3.0.0` — any consumer that calls a body-carrying
+method against a real Spring controller is affected.
+
 ## [3.0.0] — Spring-major-aligned versioning policy
 
 **Renumbering of `0.6.0`** per the new [Spring-major-aligned versioning policy](https://github.com/devslab-kr/.github/blob/main/.github/VERSIONING.md). No API, behaviour, or dependency changes — the major number bumps from `0.6` to `3.0` to match the Spring Boot major this line targets (Spring Boot 3). Published JAR bytes are identical to `0.6.0` apart from the version coordinate.
@@ -266,7 +345,8 @@ First public release. Repackaged as a standalone Spring Boot starter.
 - Auto-configuration via `ApiLogAutoConfiguration` with `@ConditionalOnMissingBean` overrides.
 - comprehensive test suite covering services, repository, listener, and Testcontainers-backed PostgreSQL integration.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v3.0.1...HEAD
+[3.0.1]: https://github.com/devslab-kr/api-log/releases/tag/v3.0.1
 [3.0.0]: https://github.com/devslab-kr/api-log/releases/tag/v3.0.0
 [0.6.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.6.0
 [0.5.2]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.2

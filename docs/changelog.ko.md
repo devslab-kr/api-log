@@ -6,6 +6,77 @@
 
 ## [Unreleased]
 
+## [3.0.1] — HTTP 클라이언트 버그 픽스: body의 Content-Type + PATCH 메서드 지원
+
+HTTP 클라이언트 유틸 (`RestApiClientUtil` / `ReactiveApiClientUtil`)의 두 가지
+버그가 첫 실제 컨슈머인 `devslab-examples`의 `api-log-*-demo` 셋이
+`@RequestBody` 어노테이션된 Spring 컨트롤러를 통한 POST/PUT/PATCH 경로를
+실행하면서 표면화됨.
+
+### 수정
+
+- **POST/PUT/PATCH body에 `Content-Type` 헤더 누락.** 유틸이 body를 Jackson으로
+  직렬화한 후 결과 `String`을 `RestClient.body(String)` /
+  `WebClient.bodyValue(String)`에 전달 — Spring의 `StringHttpMessageConverter`가
+  raw String body의 기본값인 `Content-Type: text/plain;charset=ISO-8859-1`로
+  내보냄. 다운스트림에서 `@RequestBody Foo`로 바인딩하는 서비스가 Unsupported
+  Media Type으로 거부. 양쪽 `exchange()` 메서드에서 `application/json` 명시.
+- **`patchSync*` / `patchAsync*`가 완전히 깨져 있었음.** auto-config가
+  `SimpleClientHttpRequestFactory` (`java.net.HttpURLConnection` 기반) 등록 —
+  `setRequestMethod`가 `ProtocolException: Invalid HTTP method: PATCH` 던짐
+  (오래된 JDK 한계). `JdkClientHttpRequestFactory` (`java.net.http.HttpClient`
+  기반, Java 11+)로 교체, 5개 HTTP verb 모두 지원. read-timeout 속성 유지,
+  connect-timeout 기본값은 `HttpClient` 내장 기본값에 위임.
+
+### 추가 — End-to-end 통합 테스트 커버리지
+
+`core/src/test/java/.../util/`에 4개 새 테스트 클래스 (총 65개 케이스):
+
+- **`RestApiClientUtilWireIT`** / **`ReactiveApiClientUtilWireIT`** —
+  MockWebServer로 wire-level 검증. body-carrying verb별 `Content-Type`, 정확한
+  body 바이트, UTF-8 인코딩 (한글 + 이모지 round-trip), 큰 body (32 KB),
+  HTTP 메서드 전파, 내부 필드 (`ApiRequest.requestId` 등)가 wire 헤더로 새지
+  않음 — 모두 검증.
+- **`RestApiClientUtilSpringE2EIT`** / **`ReactiveApiClientUtilSpringE2EIT`** —
+  실제 `@SpringBootTest` + `@RequestBody Foo` 받는 `@RestController` 띄움.
+  servlet (Tomcat) / reactor-netty 각각. 테스트 클래스패스에 두 starter 다
+  있으니 `spring.main.web-application-type`을 명시 고정. 5개 verb 전체 +
+  4xx/5xx propagation + 유니코드/중첩 객체/null 필드 round-trip.
+
+기존 `RestApiClientUtilRoutingTest` / `ReactiveApiClientUtilRoutingTest`
+(subclass 기반, 실제 HTTP 안 함)는 두 버그 모두 못 잡았음 — 네트워크 layer에
+닿지 않았기 때문. 새 IT 클래스들이 그 갭을 메우고 향후 HTTP 클라이언트
+리팩토링에 대한 회귀 보장 역할.
+
+### 호환성
+
+- **API 변경 없음.** `RestApiClientUtil` / `ReactiveApiClientUtil` 메서드 시그니처
+  그대로. `3.0.0`에서 엄격한 drop-in 업그레이드.
+- **raw non-JSON String body 동작 변경.** `3.0.1` 전엔 raw String payload가
+  `text/plain`으로 나갔음. 이제 모든 body-carrying 호출이 `application/json`
+  으로. 아웃바운드 호출에 다른 content type이 정말 필요하면 Spring의
+  `RestClient` / `WebClient`를 직접 사용 — api-log 래퍼는 설계상 JSON 전용
+  (라이브러리 전체가 JSON + JSONB 중심).
+- **`ClientHttpRequestFactory` bean swap.** 컨슈머가 `@ConditionalOnMissingBean`
+  으로 자체 `ClientHttpRequestFactory`를 제공하면 그게 계속 우선; default
+  factory만 바뀜.
+
+### `3.0.0`에서 올라오기
+
+```diff
+- implementation("kr.devslab:api-log-core:3.0.0")
++ implementation("kr.devslab:api-log-core:3.0.1")
+- implementation("kr.devslab:api-log-jpa:3.0.0")
++ implementation("kr.devslab:api-log-jpa:3.0.1")
+- implementation("kr.devslab:api-log-r2dbc:3.0.0")
++ implementation("kr.devslab:api-log-r2dbc:3.0.1")
+- implementation("kr.devslab:api-log-mybatis:3.0.0")
++ implementation("kr.devslab:api-log-mybatis:3.0.1")
+```
+
+`3.0.0` 사용자 모두 권장 — 실제 Spring 컨트롤러로 body-carrying 메서드를
+호출하는 모든 컨슈머에 영향.
+
 ## [3.0.0] — Spring-major 정렬 버전 정책
 
 **`0.6.0`의 재번호링** — 새 [Spring-major 정렬 버전 정책](https://github.com/devslab-kr/.github/blob/main/.github/VERSIONING.md#한국어)에 따름. API / 동작 / 의존성 변경 전혀 없음 — 메이저 숫자를 `0.6` → `3.0`으로 올려서 이 라인의 타겟 Spring Boot 메이저 (Spring Boot 3)와 일치시킴. 발행된 JAR 바이트는 `0.6.0`과 동일 (POM의 버전 좌표만 다름).
@@ -266,7 +337,8 @@ v0.1.0의 자동 마이그레이션에 의존하고 있었다면:
 - `ApiLogAutoConfiguration`을 통한 자동 구성, `@ConditionalOnMissingBean` 오버라이드.
 - 서비스·리포지토리·리스너·Testcontainers 기반 PostgreSQL 통합까지 포괄적 테스트.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v3.0.1...HEAD
+[3.0.1]: https://github.com/devslab-kr/api-log/releases/tag/v3.0.1
 [3.0.0]: https://github.com/devslab-kr/api-log/releases/tag/v3.0.0
 [0.6.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.6.0
 [0.5.2]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.2

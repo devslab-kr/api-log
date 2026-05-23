@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -150,10 +151,24 @@ public class ReactiveApiClientUtil {
 
     // ====== Internals =======================================================
 
+    /**
+     * Build the WebClient request chain. Body-less HTTP methods (GET, DELETE
+     * without payload) are sent without a body; body-carrying methods (POST,
+     * PUT, PATCH) use the payload when present.
+     *
+     * <p>When a payload is present it is always sent as {@code application/json;
+     * charset=UTF-8}. The payload arrives here already in JSON canonical form
+     * (either serialized by {@link #serialize(Object)} for the typed wrappers
+     * or supplied as a JSON string by the raw String-payload overloads).
+     * Without the explicit {@link MediaType#APPLICATION_JSON} hint, WebClient
+     * would fall back to {@code text/plain} for a String {@code bodyValue},
+     * which any downstream service deserializing with {@code @RequestBody}
+     * rejects as Unsupported Media Type.
+     */
     private Mono<ResponseEntity<String>> exchange(HttpMethod method, ApiRequest request) {
         WebClient.RequestBodySpec spec = webClient.method(method).uri(request.getEndpoint());
         WebClient.RequestHeadersSpec<?> headersSpec = (request.getPayload() != null)
-                ? spec.bodyValue(request.getPayload())
+                ? spec.contentType(MediaType.APPLICATION_JSON).bodyValue(request.getPayload())
                 : spec;
         return headersSpec.retrieve().toEntity(String.class);
     }
