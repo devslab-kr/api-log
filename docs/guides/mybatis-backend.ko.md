@@ -23,14 +23,14 @@ JPA를 쓰고 있으면 [`api-log-jpa`](jpa-backend.md) 선택. WebFlux + R2DBC�
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-mybatis</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
     ```
 
 === "Gradle (Kotlin DSL)"
 
     ```kotlin
-    implementation("kr.devslab:api-log-mybatis:3.0.0")
+    implementation("kr.devslab:api-log-mybatis:3.0.1")
     ```
 
 `api-log-mybatis`는 `api-log-core`, `mybatis-spring-boot-starter:3.0.4`

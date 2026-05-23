@@ -23,14 +23,14 @@ WebFlux + R2DBC 환경이면 [`api-log-r2dbc`](r2dbc-backend.md), MyBatis 환경
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-jpa</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
     ```
 
 === "Gradle (Kotlin DSL)"
 
     ```kotlin
-    implementation("kr.devslab:api-log-jpa:3.0.0")
+    implementation("kr.devslab:api-log-jpa:3.0.1")
     ```
 
 `api-log-jpa`는 `api-log-core` (이벤트, 리스너, HTTP 유틸)와

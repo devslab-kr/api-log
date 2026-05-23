@@ -25,21 +25,21 @@ backend artifact pulls in `api-log-core` transitively.**
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-jpa</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
 
     <!-- ...or, for reactive apps -->
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-r2dbc</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
 
     <!-- ...or, MyBatis -->
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-mybatis</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
     ```
 
@@ -48,9 +48,9 @@ backend artifact pulls in `api-log-core` transitively.**
     ```kotlin
     dependencies {
         // JPA — drop-in for v0.5.x setups
-        implementation("kr.devslab:api-log-jpa:3.0.0")
-        // or "kr.devslab:api-log-r2dbc:3.0.0"
-        // or "kr.devslab:api-log-mybatis:3.0.0"
+        implementation("kr.devslab:api-log-jpa:3.0.1")
+        // or "kr.devslab:api-log-r2dbc:3.0.1"
+        // or "kr.devslab:api-log-mybatis:3.0.1"
     }
     ```
 
@@ -58,14 +58,14 @@ backend artifact pulls in `api-log-core` transitively.**
 
     ```groovy
     dependencies {
-        implementation 'kr.devslab:api-log-jpa:3.0.0'
-        // or 'kr.devslab:api-log-r2dbc:3.0.0'
-        // or 'kr.devslab:api-log-mybatis:3.0.0'
+        implementation 'kr.devslab:api-log-jpa:3.0.1'
+        // or 'kr.devslab:api-log-r2dbc:3.0.1'
+        // or 'kr.devslab:api-log-mybatis:3.0.1'
     }
     ```
 
 !!! tip "Latest version"
-    Replace `3.0.0` with the latest from [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-core).
+    Replace `3.0.1` with the latest from [Maven Central](https://central.sonatype.com/artifact/kr.devslab/api-log-core).
 
 !!! info "Upgrading from v0.5.x?"
     Swap the old `api-log-spring-boot-starter` coordinate for `api-log-jpa`

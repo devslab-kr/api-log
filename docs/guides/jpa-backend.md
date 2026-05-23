@@ -25,14 +25,14 @@ you're on MyBatis, prefer [`api-log-mybatis`](mybatis-backend.md). The
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-jpa</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
     ```
 
 === "Gradle (Kotlin DSL)"
 
     ```kotlin
-    implementation("kr.devslab:api-log-jpa:3.0.0")
+    implementation("kr.devslab:api-log-jpa:3.0.1")
     ```
 
 `api-log-jpa` transitively pulls in `api-log-core` (events, listener, HTTP

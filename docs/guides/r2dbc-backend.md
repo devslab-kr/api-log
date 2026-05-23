@@ -25,14 +25,14 @@ rows in `api_log`.
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-r2dbc</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </dependency>
     ```
 
 === "Gradle (Kotlin DSL)"
 
     ```kotlin
-    implementation("kr.devslab:api-log-r2dbc:3.0.0")
+    implementation("kr.devslab:api-log-r2dbc:3.0.1")
     ```
 
 `api-log-r2dbc` transitively pulls in `api-log-core` plus `spring-r2dbc`

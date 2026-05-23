@@ -91,30 +91,30 @@ v3.0.0부터 스타터가 4개 아티팩트로 분리됐습니다 — 백엔드 
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-jpa</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 
 <!-- 또는 리액티브 앱에서 R2DBC -->
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-r2dbc</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 
 <!-- 또는 MyBatis -->
 <dependency>
     <groupId>kr.devslab</groupId>
     <artifactId>api-log-mybatis</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```kotlin
-implementation("kr.devslab:api-log-jpa:3.0.0")
-// 또는 "kr.devslab:api-log-r2dbc:3.0.0"
-// 또는 "kr.devslab:api-log-mybatis:3.0.0"
+implementation("kr.devslab:api-log-jpa:3.0.1")
+// 또는 "kr.devslab:api-log-r2dbc:3.0.1"
+// 또는 "kr.devslab:api-log-mybatis:3.0.1"
 ```
 
 ## 설정
