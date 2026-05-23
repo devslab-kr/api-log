@@ -13,13 +13,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # The maven-central environment was auto-created on first run with no
-    # secrets registered, so `${{ secrets.SIGNING_KEY }}` resolved to an empty
-    # string ("Could not read PGP secret key"). Dropping the directive lets
-    # the workflow fall back to org-level secrets (which devslab-kr has and
-    # easy-paging already publishes against). If we want manual approval back
-    # later, re-add `environment: maven-central` AND register the five secrets
-    # directly under that environment in repo settings.
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -36,33 +29,6 @@ jobs:
       - name: Derive version from tag
         id: ver
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
-
-      - name: Diag — secret shape
-        env:
-          K: ${{ secrets.SIGNING_KEY }}
-          ID: ${{ secrets.SIGNING_KEY_ID }}
-          P: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          U: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          PW: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-        run: |
-          echo "SIGNING_KEY length=${#K}"
-          echo "SIGNING_KEY_ID length=${#ID}"
-          echo "SIGNING_KEY_PASSWORD length=${#P}"
-          echo "MAVEN_CENTRAL_USERNAME length=${#U}"
-          echo "MAVEN_CENTRAL_PASSWORD length=${#PW}"
-          # PGP armor shape check (values themselves stay masked)
-          if [[ "$K" == *"BEGIN PGP PRIVATE KEY"* ]]; then
-            echo "SIGNING_KEY has BEGIN PGP header: YES"
-          else
-            echo "SIGNING_KEY has BEGIN PGP header: NO"
-          fi
-          if [[ "$K" == *"END PGP PRIVATE KEY"* ]]; then
-            echo "SIGNING_KEY has END PGP footer: YES"
-          else
-            echo "SIGNING_KEY has END PGP footer: NO"
-          fi
-          line_count=$(printf '%s' "$K" | wc -l)
-          echo "SIGNING_KEY newline count=$line_count"
 
       - name: Build and test
         run: ./gradlew build --no-configuration-cache --stacktrace -PVERSION=${{ steps.ver.outputs.version }}
