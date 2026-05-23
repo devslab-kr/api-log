@@ -25,7 +25,7 @@ rows in `api_log`.
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-r2dbc</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
     ```
 
@@ -63,7 +63,7 @@ When `ConnectionFactory` is on the classpath and `api.log.enabled=true`,
 | `ApiLogR2dbcSchemaInitializer` | Runs `V1.0__create_api_log.sql` reactively via Spring Boot's `R2dbcScriptDatabaseInitializer` (BUILTIN mode only) |
 
 The schema initializer talks to `ConnectionFactory` directly — **no JDBC
-DataSource is required**, even at boot. That's the v0.6.0 promise this
+DataSource is required**, even at boot. That's the v3.0.0 promise this
 backend delivers: a fully reactive `api_log` install.
 
 ## How rows get written

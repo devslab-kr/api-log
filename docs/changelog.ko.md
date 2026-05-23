@@ -266,7 +266,9 @@ v0.1.0의 자동 마이그레이션에 의존하고 있었다면:
 - `ApiLogAutoConfiguration`을 통한 자동 구성, `@ConditionalOnMissingBean` 오버라이드.
 - 서비스·리포지토리·리스너·Testcontainers 기반 PostgreSQL 통합까지 포괄적 테스트.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/devslab-kr/api-log/releases/tag/v3.0.0
+[0.6.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.6.0
 [0.5.2]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.2
 [0.5.1]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.1
 [0.5.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.0

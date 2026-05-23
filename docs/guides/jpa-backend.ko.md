@@ -23,7 +23,7 @@ WebFlux + R2DBC 환경이면 [`api-log-r2dbc`](r2dbc-backend.md), MyBatis 환경
     <dependency>
         <groupId>kr.devslab</groupId>
         <artifactId>api-log-jpa</artifactId>
-        <version>0.6.0</version>
+        <version>3.0.0</version>
     </dependency>
     ```
 

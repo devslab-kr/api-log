@@ -266,7 +266,9 @@ First public release. Repackaged as a standalone Spring Boot starter.
 - Auto-configuration via `ApiLogAutoConfiguration` with `@ConditionalOnMissingBean` overrides.
 - comprehensive test suite covering services, repository, listener, and Testcontainers-backed PostgreSQL integration.
 
-[Unreleased]: https://github.com/devslab-kr/api-log/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/devslab-kr/api-log/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/devslab-kr/api-log/releases/tag/v3.0.0
+[0.6.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.6.0
 [0.5.2]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.2
 [0.5.1]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.1
 [0.5.0]: https://github.com/devslab-kr/api-log/releases/tag/v0.5.0
