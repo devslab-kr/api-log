@@ -12,9 +12,10 @@ docs_dir: docs
 
 theme:
   name: material
+  custom_dir: docs/overrides
   language: en
   logo: assets/logo.svg
-  favicon: assets/logo.svg
+  favicon: assets/favicon.svg
   features:
     - navigation.tabs
     - navigation.sections

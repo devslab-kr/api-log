@@ -241,3 +241,59 @@ html[lang="ko"] .md-header [aria-label="Select language"]::before,
 html[lang="ko"] .md-header [aria-label*="언어"]::before {
   content: "한";
 }
+
+/* === O09 project identity ==================================================
+ * The event-ledger mark stays a small, linked source of provenance above the
+ * existing documentation hero. The atmosphere is decorative only.
+ * ========================================================================== */
+.oss-project-intro {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.5rem;
+  margin: 0 0 0.85rem;
+  padding: 0.35rem 0.55rem 0.35rem 0.4rem;
+  overflow: hidden;
+  border-radius: 0.4rem;
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+}
+
+.oss-project-intro:hover,
+.oss-project-intro:focus {
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+}
+
+.oss-project-intro[data-atmosphere="project"]::before {
+  position: absolute;
+  inset: -1.75rem -3.5rem;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 18% 50%, rgb(14 116 144 / 0.10), transparent 68%);
+  content: "";
+}
+
+.oss-project-intro img {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+}
+
+.oss-project-intro span {
+  display: grid;
+  line-height: 1.2;
+}
+
+.oss-project-intro strong { font-size: 0.9rem; }
+.oss-project-intro small { color: var(--md-default-fg-color--light); font-size: 0.72rem; }
+
+[data-md-color-scheme="slate"] .oss-project-intro[data-atmosphere="project"]::before {
+  background: radial-gradient(ellipse at 18% 50%, rgb(34 211 238 / 0.10), transparent 68%);
+}
+
+@media (forced-colors: active), print {
+  .oss-project-intro[data-atmosphere="project"]::before { display: none; }
+}

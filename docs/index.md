@@ -4,6 +4,11 @@ title: api-log — Event-driven API call logging for Spring Boot
 
 # api-log
 
+<a class="oss-project-intro" data-atmosphere="project" href="https://devslab.kr/brand/open-source/" aria-label="api-log, Open source by DevsLab">
+  <img src="assets/logo.svg" alt="" aria-hidden="true" />
+  <span><strong>api-log</strong><small>Open source by DevsLab</small></span>
+</a>
+
 > **Event-driven API call logging for Spring Boot.**
 > Async event pipeline + PostgreSQL JSONB. Log every outbound call without slowing the request path.
 

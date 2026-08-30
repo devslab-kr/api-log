@@ -1,5 +1,11 @@
 # api-log-spring-boot-starter
 
+<p align="center">
+  <a href="https://devslab.kr/brand/open-source/"><img src=".github/assets/readme-header.png" alt="api-log - Open source by DevsLab" width="100%" /></a>
+</p>
+
+**Open source by [DevsLab](https://devslab.kr/)** · [OSS brand guide](https://devslab.kr/brand/open-source/) · Registry O09
+
 **English** · [한국어](README.ko.md)
 
 > Event-driven API call logging for Spring Boot. Async event pipeline with PostgreSQL JSONB storage.

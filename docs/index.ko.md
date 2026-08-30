@@ -4,6 +4,11 @@ title: api-log — Spring Boot용 이벤트 드리븐 API 호출 로깅
 
 # api-log
 
+<a class="oss-project-intro" data-atmosphere="project" href="https://devslab.kr/brand/open-source/" aria-label="api-log, DevsLab 오픈소스">
+  <img src="assets/logo.svg" alt="" aria-hidden="true" />
+  <span><strong>api-log</strong><small>DevsLab 오픈소스</small></span>
+</a>
+
 > **Spring Boot용 이벤트 드리븐 API 호출 로깅.**
 > 비동기 이벤트 파이프라인 + PostgreSQL JSONB. 요청 경로를 막지 않고 외부 API 호출을 모두 기록합니다.
 
