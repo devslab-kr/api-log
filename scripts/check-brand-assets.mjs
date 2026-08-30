@@ -78,6 +78,10 @@ expect(override, 'og:image:alt', 'Open Graph alt metadata');
 expect(override, 'twitter:image:alt', 'Twitter alt metadata');
 expect(css, '.oss-project-intro', 'O09 docs project introduction styling');
 expect(css, 'data-atmosphere="project"', 'O09 project atmosphere');
+const slateAtmosphere = `[data-md-color-scheme="slate"] .oss-project-intro[data-atmosphere="project"]::before {
+  background: radial-gradient(ellipse at 18% 50%, rgb(34 211 238 / 0.10), transparent 68%);
+}`;
+expect(css, slateAtmosphere, 'Material slate O09 atmosphere at the 0.10 cyan opacity cap');
 expect(css, 'pointer-events: none', 'O09 atmosphere ignores interaction');
 expect(css, '@media (forced-colors: active), print', 'O09 print and forced-colors fallback');
 
