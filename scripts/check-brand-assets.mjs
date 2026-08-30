@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const guide = 'https://devslab.kr/brand/open-source/';
 const socialImage = 'https://api-log.devslab.kr/assets/social-preview.png';
-const read = (relative) => readFile(path.join(root, relative), 'utf8');
+const read = async (relative) => (await readFile(path.join(root, relative), 'utf8')).replace(/\r\n/g, '\n');
 const file = (relative) => path.join(root, relative);
 
 function expect(contents, expected, message) {
@@ -22,22 +22,26 @@ async function sha256(relative) {
 }
 
 const expectedAssets = new Map([
-  ['.github/assets/readme-header.png', 'fea39433ffb685add26050558b2758858610be982f893014a1eead2d5469fbcc'],
-  ['.github/assets/social-preview.png', '3120931330d7604cda9ee4aa27d42e849e9f05f24cd8cb50b95e389d97a86842'],
-  ['docs/assets/logo.svg', '94697c47e87ac17d9209b890da0993b9d85c04ddb2d91b27afc7cfc31dc0380d'],
-  ['docs/assets/favicon.svg', '94697c47e87ac17d9209b890da0993b9d85c04ddb2d91b27afc7cfc31dc0380d'],
-  ['docs/assets/social-preview.png', '3120931330d7604cda9ee4aa27d42e849e9f05f24cd8cb50b95e389d97a86842'],
+  ['.github/assets/readme-header.png', '450b9eeb0a70870271b7911036ea678901ce401ab9a2bfbdfddb06eca415eb6c'],
+  ['.github/assets/social-preview.png', '49e097cf380c5151c15cad6b34020b011c3558ba3ae8510fae80de2ef415c4e8'],
+  ['docs/assets/logo.svg', 'a434b7a1bcb681e990968e52f2cb7277485585c53f82b12a2c9f0cfe73700ab9'],
+  ['docs/assets/favicon.svg', 'a434b7a1bcb681e990968e52f2cb7277485585c53f82b12a2c9f0cfe73700ab9'],
+  ['docs/assets/social-preview.png', '49e097cf380c5151c15cad6b34020b011c3558ba3ae8510fae80de2ef415c4e8'],
 ]);
 
 for (const [relative, expected] of expectedAssets) {
   await access(file(relative));
-  if ((await sha256(relative)) !== expected) throw new Error(`${relative} must match the O09 v0.1.1 asset checksum`);
+  if ((await sha256(relative)) !== expected) throw new Error(`${relative} must match the O09 v0.2.0 asset checksum`);
 }
 
 const glyph = await read('docs/assets/logo.svg');
 expect(glyph, 'data-oss-project="O09"', 'O09 registry id');
-expect(glyph, 'M5 8H13', 'O09 event-ledger input row');
-expect(glyph, 'M15 6H27V12H15Z', 'O09 event-ledger record cell');
+expect(glyph, 'data-layer="q-frame"', 'O09 shared Q frame');
+expect(glyph, '<rect x="5" y="5" width="16" height="16" rx="2"', 'O09 rear Q frame');
+expect(glyph, '<rect x="11" y="11" width="16" height="16" rx="2"', 'O09 front Q frame');
+expect(glyph, 'M13 14H23', 'O09 event-ledger first row');
+expect(glyph, 'M13 18H25', 'O09 event-ledger second row');
+expect(glyph, 'M13 22H21', 'O09 event-ledger third row');
 reject(glyph, /M\s*4\s*4\s*L\s*28\s*4/i, 'O09 must replace the former shared backend mark');
 reject(glyph, /M7 6H21V20H7Z/i, 'O09 must remain distinct from O08');
 reject(glyph, /M5 5H13V13H5Z/i, 'O09 must remain distinct from O10');
@@ -85,4 +89,4 @@ expect(css, slateAtmosphere, 'Material slate O09 atmosphere at the 0.10 cyan opa
 expect(css, 'pointer-events: none', 'O09 atmosphere ignores interaction');
 expect(css, '@media (forced-colors: active), print', 'O09 print and forced-colors fallback');
 
-console.log(`check:brand: verified O09 event-ledger identity, metadata, and ${expectedAssets.size} checksummed v0.1.1 assets`);
+console.log(`check:brand: verified O09 event-ledger identity, metadata, and ${expectedAssets.size} checksummed v0.2.0 assets`);
