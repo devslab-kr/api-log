@@ -1,5 +1,11 @@
 # api-log-spring-boot-starter
 
+<p align="center">
+  <a href="https://devslab.kr/brand/open-source/"><img src=".github/assets/readme-header.png" alt="api-log - DevsLab 오픈소스" width="100%" /></a>
+</p>
+
+**[DevsLab 오픈소스](https://devslab.kr/)** · [OSS 브랜드 가이드](https://devslab.kr/brand/open-source/) · Registry O09
+
 [English](README.md) · **한국어**
 
 > Spring Boot용 이벤트 드리븐 API 호출 로깅. 비동기 이벤트 파이프라인 + PostgreSQL JSONB. 요청 경로를 막지 않고 외부 API 호출을 모두 기록합니다.
