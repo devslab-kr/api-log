@@ -1,0 +1,299 @@
+/* ---------------------------------------------------------------------------
+ * api-log docs — devslab brand theme
+ *
+ * Aesthetic: header blends into the body — devslab.kr style.
+ *   - Light mode: white header, white body, dark text/logo
+ *   - Dark  mode: zinc-900 header, zinc-900 body, white text/logo
+ *   - Visual separation between header and body is a hairline border only
+ *   - Cyan-electric used as a small accent (links, hovers, active tab)
+ *   - Pretendard typography (same family as devslab.kr)
+ *   - Bilingual "EN / 한" language switcher (no CJK glyph, no generic globe)
+ *
+ * Material's default paints the header in primary color. We override the
+ * primary CSS variables to match the body bg so there's no visible color
+ * block at the top — just navigation sitting cleanly above content.
+ * --------------------------------------------------------------------------- */
+
+/* === Typography: Pretendard (same family as devslab.kr) =================== */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+
+:root {
+  --md-text-font: "Pretendard",
+                  -apple-system,
+                  "Apple SD Gothic Neo",
+                  "Noto Sans KR",
+                  system-ui,
+                  sans-serif;
+  --md-code-font: "JetBrains Mono", "SFMono-Regular", Menlo,
+                  Consolas, "Liberation Mono", monospace;
+}
+
+/* === Palette (light scheme) ==============================================
+ * Scoped to `[data-md-color-scheme="default"]`, not `:root`. Material's
+ * own default-scheme stylesheet re-defines these variables inside that
+ * exact scope, and at equal specificity the later rule wins — meaning
+ * anything we set in `:root` was getting silently overridden, leaving
+ * body links the wrong color (and sometimes invisible against the
+ * white body bg). Same trick already worked for the dark scheme below;
+ * apply it consistently here.
+ *
+ * Header bg = body bg (white). Header text = dark (zinc-900) for contrast.
+ * Cyan-electric stays as a small accent on links/hovers.
+ * ========================================================================== */
+[data-md-color-scheme="default"] {
+  /* Primary = header surface; match body bg so the header blends in. */
+  --md-primary-fg-color:        #ffffff;
+  --md-primary-fg-color--light: #fafafa;
+  --md-primary-fg-color--dark:  #f4f4f5;   /* zinc-100 — used for elevated states */
+  --md-primary-bg-color:        #18181b;   /* zinc-900 — text/logo on the white header */
+  --md-primary-bg-color--light: rgba(24, 24, 27, 0.75);
+
+  /* Accent — small surfaces (links, hovers, selection)
+   *
+   * cyan-700 instead of cyan-500: against a white body the brighter
+   * cyan-500 lands at ~2.4:1 contrast — under WCAG AA's 4.5:1 minimum
+   * for normal text. cyan-700 (#0e7490) gives ~5.4:1 which passes AA
+   * while keeping the "electric" feel.
+   */
+  --md-accent-fg-color:              #0e7490;                  /* cyan-700 — AA-readable on white */
+  --md-accent-fg-color--transparent: rgba(14, 116, 144, 0.10);
+
+  /* Body link color — decouple from primary, follow accent. */
+  --md-typeset-a-color:         #0e7490;   /* cyan-700 */
+}
+
+/* === Dark scheme — header blends into the zinc-900 body =================== */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #18181b;   /* zinc-900 — same as body bg below */
+  --md-primary-fg-color--light: #27272a;   /* zinc-800 — slightly raised */
+  --md-primary-fg-color--dark:  #09090b;   /* zinc-950 */
+  --md-primary-bg-color:        #fafafa;   /* white text/logo on dark header */
+  --md-primary-bg-color--light: rgba(250, 250, 250, 0.75);
+
+  --md-accent-fg-color:              #22d3ee;                  /* cyan-400 — pops on dark */
+  --md-accent-fg-color--transparent: rgba(34, 211, 238, 0.12);
+
+  /* Body links on dark — slightly brighter cyan for readability. */
+  --md-typeset-a-color:         #22d3ee;   /* cyan-400 */
+
+  /* Body bg matches devslab.kr's actual zinc-900. */
+  --md-default-bg-color:        #18181b;
+  --md-default-bg-color--light: #27272a;
+  --md-default-bg-color--lighter: #3f3f46;
+  --md-code-bg-color:           #09090b;   /* zinc-950 — code blocks pop */
+}
+
+/* === Link affordance ====================================================
+ * Always-on subtle underline + cyan color. Color alone wasn't enough in
+ * sections where a link follows bolded descriptive text (e.g. the
+ * "Where to go next" list on the landing page) — the visual weight of
+ * the bold text drowned out the cyan link. The underline restores the
+ * "this is clickable" affordance without relying purely on color.
+ *
+ * Underline is dim at rest and thickens on hover for feedback.
+ * Offset of 0.18em keeps the underline from clipping descender glyphs
+ * (g, j, p, q, y).
+ * ========================================================================== */
+.md-typeset a {
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.18em;
+}
+.md-typeset a:hover,
+.md-typeset a:focus {
+  text-decoration: underline;
+  text-decoration-thickness: 0.12em;
+}
+
+/* Code-styled link text — Material's <code> has its own (dark) color which
+ * blocks the link's cyan from showing through. Force <code> inside any body
+ * link to inherit the link color, so [`SomeFile.md`](...) reads as a link. */
+.md-typeset a code {
+  color: inherit;
+}
+
+/* Sidebar nav: active page should be obviously cyan. Material defaults
+ * to --md-typeset-a-color which is cyan-700, but the chrome around it
+ * (subtle background, weight) made it easy to miss in light mode. Bump
+ * weight and remove any opacity so the active page is unmistakable. */
+.md-nav__link--active {
+  color: var(--md-accent-fg-color);
+  font-weight: 700;
+  opacity: 1;
+}
+
+/* === Buttons ({ .md-button } / { .md-button--primary }) ===================
+ * Same root cause as the body links: Material's default button colors
+ * inherit from primary, which we set to match body bg. Result: outlined
+ * buttons (.md-button) were transparent-on-transparent until hover, and
+ * the primary CTA looked muddy. Rewire to the accent (cyan) family so the
+ * three landing-page buttons (Get Started / GitHub / Maven Central) all
+ * stay visible at rest.
+ * ========================================================================== */
+
+/* Outlined: cyan border + cyan text, fills on hover.
+ * Explicit text-decoration: none — buttons shouldn't inherit the
+ * always-on underline that body links now have. */
+.md-typeset .md-button {
+  color: var(--md-accent-fg-color);
+  border-color: var(--md-accent-fg-color);
+  text-decoration: none;
+}
+.md-typeset .md-button:hover,
+.md-typeset .md-button:focus {
+  background-color: var(--md-accent-fg-color);
+  color: #ffffff;
+  border-color: var(--md-accent-fg-color);
+  text-decoration: none;   /* override the global link-hover underline */
+}
+
+/* Primary CTA: filled cyan, white text. Use cyan-500 (brighter) for the
+ * fill since white text on it has plenty of contrast — the dim cyan-700
+ * we use for body text would look muddy here. */
+.md-typeset .md-button--primary {
+  background-color: #06b6d4;   /* cyan-500 — vibrant fill */
+  color: #ffffff;
+  border-color: #06b6d4;
+  text-decoration: none;
+}
+.md-typeset .md-button--primary:hover,
+.md-typeset .md-button--primary:focus {
+  background-color: #0891b2;   /* cyan-600 — darker on hover */
+  border-color: #0891b2;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+/* Dark-mode hover: use a brighter cyan since the base is already brighter,
+ * with dark text for contrast. */
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary:hover,
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary:focus {
+  background-color: #67e8f9;   /* cyan-300 */
+  border-color: #67e8f9;
+  color: #18181b;
+}
+[data-md-color-scheme="slate"] .md-typeset .md-button:hover,
+[data-md-color-scheme="slate"] .md-typeset .md-button:focus {
+  color: #18181b;              /* dark text on bright-cyan filled hover */
+}
+
+/* === Hairline separation (the only visual cue the header exists) ========== */
+.md-header {
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+}
+[data-md-color-scheme="slate"] .md-header {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* === Tabs bar (sub-nav under header) — same blending treatment ============ */
+.md-tabs {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+[data-md-color-scheme="slate"] .md-tabs {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+.md-tabs__link--active {
+  color: var(--md-accent-fg-color);
+  opacity: 1;
+}
+.md-tabs__link:hover {
+  color: var(--md-accent-fg-color) !important;
+  opacity: 1;
+}
+
+/* === Brand logo — invert only in dark mode ================================
+ * logo-mark.svg ships as #0a0a0a (dark). That's perfect on the white light-
+ * mode header. In dark mode, force it white with brightness(0)+invert(1).
+ * ========================================================================== */
+[data-md-color-scheme="slate"] .md-header__button.md-logo img,
+[data-md-color-scheme="slate"] .md-header__button.md-logo svg {
+  filter: brightness(0) invert(1);
+}
+
+/* === Language switcher: bilingual text label ===============================
+ * Replace Material's "A + 文" CJK glyph with the current page language as
+ * a short badge ("EN" or "한"). The 文 reads as "Chinese" to most Korean
+ * visitors which isn't what we want for a language-switcher affordance.
+ * ========================================================================== */
+.md-header [aria-label="Select language"] > svg,
+.md-header [aria-label*="언어"]              > svg {
+  display: none;
+}
+
+.md-header [aria-label="Select language"]::before,
+.md-header [aria-label*="언어"]::before {
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 0 0.15rem;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+html[lang="en"] .md-header [aria-label="Select language"]::before,
+html[lang="en"] .md-header [aria-label*="언어"]::before {
+  content: "EN";
+}
+
+html[lang="ko"] .md-header [aria-label="Select language"]::before,
+html[lang="ko"] .md-header [aria-label*="언어"]::before {
+  content: "한";
+}
+
+/* === O09 project identity ==================================================
+ * The event-ledger mark stays a small, linked source of provenance above the
+ * existing documentation hero. The atmosphere is decorative only.
+ * ========================================================================== */
+.oss-project-intro {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.5rem;
+  margin: 0 0 0.85rem;
+  padding: 0.35rem 0.55rem 0.35rem 0.4rem;
+  overflow: hidden;
+  border-radius: 0.4rem;
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+}
+
+.oss-project-intro:hover,
+.oss-project-intro:focus {
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+}
+
+.oss-project-intro[data-atmosphere="project"]::before {
+  position: absolute;
+  inset: -1.75rem -3.5rem;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 18% 50%, rgb(14 116 144 / 0.10), transparent 68%);
+  content: "";
+}
+
+.oss-project-intro img {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+}
+
+.oss-project-intro span {
+  display: grid;
+  line-height: 1.2;
+}
+
+.oss-project-intro strong { font-size: 0.9rem; }
+.oss-project-intro small { color: var(--md-default-fg-color--light); font-size: 0.72rem; }
+
+[data-md-color-scheme="slate"] .oss-project-intro[data-atmosphere="project"]::before {
+  background: radial-gradient(ellipse at 18% 50%, rgb(34 211 238 / 0.10), transparent 68%);
+}
+
+@media (forced-colors: active), print {
+  .oss-project-intro[data-atmosphere="project"]::before { display: none; }
+}

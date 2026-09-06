@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://api-log.devslab.kr/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/changelog/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/changelog/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/changelog/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/contributing/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/contributing/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/contributing/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/getting-started/installation/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/getting-started/installation/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/getting-started/installation/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/getting-started/quickstart/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/getting-started/quickstart/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/getting-started/quickstart/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/guides/jpa-backend/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/jpa-backend/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/jpa-backend/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/guides/mybatis-backend/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/mybatis-backend/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/mybatis-backend/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/guides/publishing-events/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/publishing-events/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/publishing-events/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/guides/querying-logs/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/querying-logs/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/querying-logs/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/guides/r2dbc-backend/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/r2dbc-backend/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/r2dbc-backend/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/guides/reactive/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/reactive/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/reactive/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/guides/retry-handling/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/retry-handling/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/retry-handling/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/guides/using-restapiclient/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/using-restapiclient/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/using-restapiclient/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/reference/configuration/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/reference/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/reference/configuration/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/reference/events/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/reference/events/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/reference/events/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/reference/schema/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/reference/schema/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/reference/schema/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/changelog/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/changelog/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/changelog/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/contributing/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/contributing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/contributing/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/getting-started/installation/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/getting-started/installation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/getting-started/installation/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/getting-started/quickstart/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/getting-started/quickstart/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/getting-started/quickstart/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/guides/jpa-backend/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/jpa-backend/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/jpa-backend/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/guides/mybatis-backend/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/mybatis-backend/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/mybatis-backend/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/guides/publishing-events/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/publishing-events/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/publishing-events/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/guides/querying-logs/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/querying-logs/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/querying-logs/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/guides/r2dbc-backend/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/r2dbc-backend/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/r2dbc-backend/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/guides/reactive/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/reactive/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/reactive/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/guides/retry-handling/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/retry-handling/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/retry-handling/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/guides/using-restapiclient/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/guides/using-restapiclient/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/guides/using-restapiclient/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/reference/configuration/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/reference/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/reference/configuration/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/reference/events/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/reference/events/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/reference/events/"/>
+    </url>
+    <url>
+        <loc>https://api-log.devslab.kr/ko/reference/schema/</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://api-log.devslab.kr/ko/reference/schema/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://api-log.devslab.kr/reference/schema/"/>
+    </url>
+</urlset>
