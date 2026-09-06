@@ -10,3 +10,8 @@
   <meta name="twitter:image" content="https://api-log.devslab.kr/assets/social-preview.png" />
   <meta name="twitter:image:alt" content="api-log O09 event ledger. Open source by DevsLab." />
 {% endblock %}
+
+{% block footer %}
+  <div class="md-grid">{% include "publisher.html" %}</div>
+  {{ super() }}
+{% endblock %}
