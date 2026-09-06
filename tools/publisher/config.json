@@ -1,0 +1,7 @@
+{
+  "name": "api-log",
+  "kind": "mkdocs",
+  "url": "https://api-log.devslab.kr/",
+  "repository": "https://github.com/devslab-kr/api-log",
+  "pages": []
+}

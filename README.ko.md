@@ -4,7 +4,9 @@
   <a href="https://devslab.kr/brand/open-source/"><img src=".github/assets/readme-header.png" alt="api-log - DevsLab 오픈소스" width="100%" /></a>
 </p>
 
-**[DevsLab 오픈소스](https://devslab.kr/)** · [OSS 브랜드 가이드](https://devslab.kr/brand/open-source/) · Registry O09
+<!-- publisher:start -->
+Open source by [데브스랩(DevsLab)](https://devslab.kr/).
+<!-- publisher:end -->
 
 [English](README.md) · **한국어**
 
