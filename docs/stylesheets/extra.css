@@ -6,7 +6,7 @@
  *   - Dark  mode: zinc-900 header, zinc-900 body, white text/logo
  *   - Visual separation between header and body is a hairline border only
  *   - Cyan-electric used as a small accent (links, hovers, active tab)
- *   - Pretendard typography (same family as devslab.kr)
+ *   - Typography supplied by DDS
  *   - Bilingual "EN / 한" language switcher (no CJK glyph, no generic globe)
  *
  * Material's default paints the header in primary color. We override the
@@ -14,26 +14,10 @@
  * block at the top — just navigation sitting cleanly above content.
  * --------------------------------------------------------------------------- */
 
-/* === Typography: Pretendard (same family as devslab.kr) =================== */
-/* One complete font face keeps Korean glyph selection atomic. Late loads
- * retain the system fallback for this visit instead of swapping text. */
-@font-face {
-  font-family: "Pretendard";
-  font-style: normal;
-  font-weight: 45 920;
-  font-display: optional;
-  src: url("../assets/fonts/pretendard/PretendardVariable-9599f12fd42f.woff2") format("woff2");
-}
-
+/* === Typography: supplied by DDS ====================================== */
 :root {
-  --md-text-font: "Pretendard",
-                  -apple-system,
-                  "Apple SD Gothic Neo",
-                  "Noto Sans KR",
-                  system-ui,
-                  sans-serif;
-  --md-code-font: "JetBrains Mono", "SFMono-Regular", Menlo,
-                  Consolas, "Liberation Mono", monospace;
+  --md-text-font: var(--dds-font-family-sans);
+  --md-code-font: var(--dds-font-family-mono);
 }
 
 /* === Palette (light scheme) ==============================================
