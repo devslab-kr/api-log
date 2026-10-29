@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 
+{% block extrahead %}
+  {{ super() }}
+  <link rel="preload" href="{{ 'assets/fonts/pretendard/PretendardVariable-9599f12fd42f.woff2' | url }}" as="font" type="font/woff2" crossorigin="anonymous">
+{% endblock %}
+
 {% block site_meta %}
   {{ super() }}
   <meta property="og:image" content="https://api-log.devslab.kr/assets/social-preview.png" />

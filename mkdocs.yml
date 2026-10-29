@@ -12,6 +12,7 @@ docs_dir: docs
 
 theme:
   name: material
+  font: false
   custom_dir: docs/overrides
   language: en
   logo: assets/logo.svg
