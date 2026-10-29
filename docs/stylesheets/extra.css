@@ -15,7 +15,15 @@
  * --------------------------------------------------------------------------- */
 
 /* === Typography: Pretendard (same family as devslab.kr) =================== */
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+/* One complete font face keeps Korean glyph selection atomic. Late loads
+ * retain the system fallback for this visit instead of swapping text. */
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 45 920;
+  font-display: optional;
+  src: url("../assets/fonts/pretendard/PretendardVariable-9599f12fd42f.woff2") format("woff2");
+}
 
 :root {
   --md-text-font: "Pretendard",
