@@ -10,6 +10,9 @@ edit_uri: edit/master/docs/
 
 docs_dir: docs
 
+hooks:
+  - tools/fonts/mkdocs_hook.py
+
 theme:
   name: material
   font: false
